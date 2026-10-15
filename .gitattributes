@@ -1,0 +1,8 @@
+# Normalize line endings so the repo is consistent across machines and the
+# build output does not churn between Windows and Linux checkouts.
+* text=auto eol=lf
+
+*.png binary
+*.ico binary
+*.webp binary
+*.jpg binary

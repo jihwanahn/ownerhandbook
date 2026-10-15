@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { SITE, CATEGORIES, absoluteUrl, type CategorySlug } from '../../data/site';
+import { getArticlesByCategory, formatDate } from '../../utils/articles';
+
+export function getStaticPaths() {
+  return CATEGORIES.map((category) => ({
+    params: { category: category.slug },
+    props: { category },
+  }));
+}
+
+const { category } = Astro.props;
+const articles = await getArticlesByCategory(category.slug as CategorySlug);
+const canonicalPath = `/categories/${category.slug}/`;
+
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    '@id': `${SITE.url}${canonicalPath}#webpage`,
+    url: absoluteUrl(canonicalPath),
+    name: `${category.name} guides | ${SITE.name}`,
+    description: category.description,
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+  ...(articles.length
+    ? [
+        {
+          '@type': 'ItemList',
+          name: `${category.name} guides`,
+          itemListElement: articles.map((entry, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: absoluteUrl(`/articles/${entry.id}/`),
+            name: entry.data.title,
+          })),
+        },
+      ]
+    : []),
+];
+---
+
+<BaseLayout
+  title={`${category.name} Guides`}
+  description={category.description.slice(0, 200)}
+  canonicalPath={canonicalPath}
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs
+    items={[
+      { label: 'Home', href: '/' },
+      { label: 'Categories', href: '/categories/' },
+      { label: category.name },
+    ]}
+  />
+
+  <h1>{category.name}</h1>
+  <p class="meta">Every guide in this category answers one question: {category.intent}</p>
+  <div class="prose">
+    <p>{category.description}</p>
+  </div>
+
+  {articles.length > 0 && (
+    <section class="section" aria-labelledby="published">
+      <h2 id="published">Published guides</h2>
+      <div class="grid">
+        {articles.map((entry) => (
+          <article class="card">
+            <h3><a href={`/articles/${entry.id}/`}>{entry.data.title}</a></h3>
+            <p>{entry.data.description}</p>
+            <p class="meta">
+              Updated {formatDate(entry.data.updatedDate ?? entry.data.pubDate)}
+            </p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <section class="section" aria-labelledby="planned">
+    <h2 id="planned">{articles.length > 0 ? 'Coming next' : 'In production'}</h2>
+    <div class="note">
+      <p>
+        These guides are being researched and written now. Each one is checked against
+        primary sources — state agencies, the SBA, the IRS and published vendor pricing —
+        before it is published.
+      </p>
+    </div>
+    <ul>
+      {category.planned.map((title) => (
+        <li>{title}</li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="section" aria-labelledby="other">
+    <h2 id="other">Other categories</h2>
+    <ul>
+      {CATEGORIES.filter((c) => c.slug !== category.slug).map((c) => (
+        <li><a href={`/categories/${c.slug}/`}>{c.name}</a> — {c.intent}</li>
+      ))}
+    </ul>
+  </section>
+</BaseLayout>

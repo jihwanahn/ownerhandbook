@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { SITE, CATEGORIES, absoluteUrl } from '../../data/site';
+import { getPublishedArticles, categoryOf, formatDate } from '../../utils/articles';
+
+const articles = await getPublishedArticles();
+
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    '@id': `${SITE.url}/articles/#webpage`,
+    url: `${SITE.url}/articles/`,
+    name: `All guides | ${SITE.name}`,
+    description:
+      'Every published guide from The Owner\'s Handbook, grouped by category: starting a business, startup costs, licensing, pricing, tools and getting customers.',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+  ...(articles.length
+    ? [
+        {
+          '@type': 'ItemList',
+          name: 'Published guides',
+          itemListElement: articles.map((entry, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            url: absoluteUrl(`/articles/${entry.id}/`),
+            name: entry.data.title,
+          })),
+        },
+      ]
+    : []),
+];
+---
+
+<BaseLayout
+  title="All Guides"
+  description="Every published guide from The Owner's Handbook, grouped by category: starting a business, startup costs, licensing and registration, pricing, tools and software, and getting customers."
+  canonicalPath="/articles/"
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'All Guides' }]} />
+
+  <h1>All guides</h1>
+  <p class="meta">
+    {articles.length} published {articles.length === 1 ? 'guide' : 'guides'} · organized by the
+    question you are trying to answer
+  </p>
+
+  {CATEGORIES.map((category) => {
+    const items = articles.filter((entry) => entry.data.category === category.slug);
+    return (
+      <section class="section" aria-labelledby={`cat-${category.slug}`}>
+        <h2 id={`cat-${category.slug}`}>
+          <a href={`/categories/${category.slug}/`}>{category.name}</a>
+        </h2>
+        <p>{category.description}</p>
+        {items.length > 0 ? (
+          <div class="grid">
+            {items.map((entry) => (
+              <article class="card">
+                <h3><a href={`/articles/${entry.id}/`}>{entry.data.title}</a></h3>
+                <p>{entry.data.description}</p>
+                <p class="meta">Updated {formatDate(entry.data.updatedDate ?? entry.data.pubDate)}</p>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p class="meta">In production — see the category page for the guides being written.</p>
+        )}
+      </section>
+    );
+  })}
+</BaseLayout>

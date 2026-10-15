@@ -1,0 +1,118 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { SITE, CATEGORIES, absoluteUrl } from '../data/site';
+import { getPublishedArticles } from '../utils/articles';
+
+const articles = await getPublishedArticles();
+
+const jsonLd = [
+  {
+    '@type': 'WebPage',
+    '@id': `${SITE.url}/#webpage`,
+    url: `${SITE.url}/`,
+    name: `${SITE.name} — ${SITE.tagline}`,
+    description: SITE.description,
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+  {
+    '@type': 'ItemList',
+    name: 'Guide categories',
+    itemListElement: CATEGORIES.map((category, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: category.name,
+      url: absoluteUrl(`/categories/${category.slug}/`),
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title={SITE.name}
+  description={SITE.description}
+  canonicalPath="/"
+  jsonLd={jsonLd}
+>
+  <section class="hero">
+    <p class="card-kicker">Small business, in plain English</p>
+    <h1>What you actually need to know to start and run the business</h1>
+    <p>
+      {SITE.name} answers the practical questions owners hit in their first two years:
+      what a business like yours costs to start, which licenses and registrations are
+      required, what to charge, which tools are worth paying for and how to keep the
+      schedule full.
+    </p>
+    <p>
+      Every guide is built from primary sources — state licensing agencies, the SBA,
+      the IRS and published vendor pricing — and shows the numbers behind the advice.
+    </p>
+    <p>
+      <a class="btn" href="/articles/">Browse all guides</a>
+    </p>
+  </section>
+
+  <section class="section" aria-labelledby="categories-heading">
+    <h2 id="categories-heading">Browse by category</h2>
+    <div class="grid">
+      {CATEGORIES.map((category) => (
+        <article class="card">
+          <h3><a href={`/categories/${category.slug}/`}>{category.name}</a></h3>
+          <p>{category.description}</p>
+          <p class="card-kicker">Answers</p>
+          <p>{category.intent}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="latest-heading">
+    <h2 id="latest-heading">Latest guides</h2>
+    {articles.length > 0 ? (
+      <div class="grid">
+        {articles.slice(0, 6).map((entry) => (
+          <article class="card">
+            <h3><a href={`/articles/${entry.id}/`}>{entry.data.title}</a></h3>
+            <p>{entry.data.description}</p>
+          </article>
+        ))}
+      </div>
+    ) : (
+      <div class="note">
+        <p>
+          We are publishing our first guides now. Each one is checked against primary
+          sources and signed off before it goes live, so the library starts small and
+          useful rather than large and thin. Start with the categories above to see
+          what is in production.
+        </p>
+      </div>
+    )}
+  </section>
+
+  <section class="section" aria-labelledby="how-heading">
+    <h2 id="how-heading">How we work</h2>
+    <div class="grid">
+      <article class="card">
+        <h3>Primary sources, cited</h3>
+        <p>
+          Fees, forms and license requirements come from the agency that publishes them.
+          When we quote a cost, the source is linked in the article.
+        </p>
+      </article>
+      <article class="card">
+        <h3>Numbers, not vibes</h3>
+        <p>
+          Startup costs are broken out line by line, with the assumptions stated so you
+          can swap in your own market's prices.
+        </p>
+      </article>
+      <article class="card">
+        <h3>Editorial review before publishing</h3>
+        <p>
+          Nothing goes live until it passes our own review for accuracy, sourcing and
+          usefulness. Read our <a href="/editorial-policy/">editorial policy</a>.
+        </p>
+      </article>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,20 @@
+{
+  "name": "ownerhandbook",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "The Owner's Handbook — practical startup and operations guides for US small business owners.",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "verify": "node scripts/verify-seo.mjs",
+    "og:image": "node scripts/generate-og-image.mjs",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/rss": "^4.0.12",
+    "@astrojs/sitemap": "^3.6.0",
+    "astro": "^5.14.0"
+  }
+}

@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { SITE, CATEGORIES, absoluteUrl } from '../../data/site';
+import { getPublishedArticles } from '../../utils/articles';
+
+const articles = await getPublishedArticles();
+
+const jsonLd = [
+  {
+    '@type': 'CollectionPage',
+    '@id': `${SITE.url}/categories/#webpage`,
+    url: `${SITE.url}/categories/`,
+    name: `Guide categories | ${SITE.name}`,
+    description:
+      'The six categories of guide The Owner\'s Handbook publishes, and the search question each one answers.',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+  {
+    '@type': 'ItemList',
+    name: 'Guide categories',
+    itemListElement: CATEGORIES.map((category, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: category.name,
+      url: absoluteUrl(`/categories/${category.slug}/`),
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Guide Categories"
+  description="The six categories of guide The Owner's Handbook publishes for US small business owners — starting a business, startup costs, licensing and registration, pricing, tools and software, and getting customers."
+  canonicalPath="/categories/"
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Categories' }]} />
+
+  <h1>Guide categories</h1>
+  <p class="meta">
+    Two clicks to anything: home → category → guide. Each category is a hub for one
+    recurring question owners ask.
+  </p>
+
+  <div class="grid">
+    {CATEGORIES.map((category) => {
+      const count = articles.filter((entry) => entry.data.category === category.slug).length;
+      return (
+        <article class="card">
+          <h2><a href={`/categories/${category.slug}/`}>{category.name}</a></h2>
+          <p>{category.description}</p>
+          <p class="meta">
+            {count} published {count === 1 ? 'guide' : 'guides'} · {category.planned.length} planned
+          </p>
+        </article>
+      );
+    })}
+  </div>
+</BaseLayout>

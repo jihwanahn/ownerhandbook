@@ -1,0 +1,137 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
+import { SITE, absoluteUrl } from '../../data/site';
+import {
+  getPublishedArticles,
+  categoryOf,
+  formatDate,
+  relatedArticles,
+  type Article,
+} from '../../utils/articles';
+
+export async function getStaticPaths() {
+  const articles = await getPublishedArticles();
+  return articles.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+interface Props {
+  entry: Article;
+}
+
+const { entry } = Astro.props;
+const { Content, headings } = await render(entry);
+const category = categoryOf(entry);
+const articles = await getPublishedArticles();
+const related = relatedArticles(entry, articles);
+
+const canonicalPath = `/articles/${entry.id}/`;
+const published = entry.data.pubDate.toISOString();
+const modified = (entry.data.updatedDate ?? entry.data.pubDate).toISOString();
+
+const jsonLd = [
+  {
+    '@type': 'Article',
+    '@id': `${absoluteUrl(canonicalPath)}#article`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(canonicalPath) },
+    headline: entry.data.title,
+    description: entry.data.description,
+    image: [entry.data.heroImage ? absoluteUrl(entry.data.heroImage) : absoluteUrl('/og-default.png')],
+    datePublished: published,
+    dateModified: modified,
+    author: { '@type': 'Organization', '@id': `${SITE.url}/#organization`, name: entry.data.author },
+    publisher: { '@type': 'Organization', '@id': `${SITE.url}/#organization`, name: SITE.name },
+    inLanguage: SITE.locale,
+    articleSection: category.name,
+    isAccessibleForFree: true,
+    ...(entry.data.sources.length
+      ? { citation: entry.data.sources.map((source) => ({ '@type': 'CreativeWork', name: source.label, url: source.url })) }
+      : {}),
+  },
+];
+---
+
+<BaseLayout
+  title={entry.data.title}
+  description={entry.data.description}
+  canonicalPath={canonicalPath}
+  image={entry.data.heroImage}
+  ogType="article"
+  publishedTime={published}
+  modifiedTime={modified}
+  author={entry.data.author}
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs
+    items={[
+      { label: 'Home', href: '/' },
+      { label: category.name, href: `/categories/${category.slug}/` },
+      { label: entry.data.title },
+    ]}
+  />
+
+  <article>
+    <h1>{entry.data.title}</h1>
+    <p class="meta">
+      By {entry.data.author} · Published {formatDate(entry.data.pubDate)}
+      {entry.data.updatedDate && <> · Updated {formatDate(entry.data.updatedDate)}</>}
+      {' '}· <a href={`/categories/${category.slug}/`}>{category.name}</a>
+    </p>
+
+    {headings.length > 2 && (
+      <nav class="note" aria-label="On this page">
+        <p class="card-kicker">On this page</p>
+        <ul>
+          {headings.filter((h) => h.depth === 2 || h.depth === 3).map((h) => (
+            <li><a href={`#${h.slug}`}>{h.text}</a></li>
+          ))}
+        </ul>
+      </nav>
+    )}
+
+    <div class="prose">
+      <Content />
+    </div>
+
+    {entry.data.sources.length > 0 && (
+      <section class="section" aria-labelledby="sources">
+        <h2 id="sources">Sources</h2>
+        <ul>
+          {entry.data.sources.map((source) => (
+            <li>
+              <a href={source.url} rel="noopener nofollow">{source.label}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {related.length > 0 && (
+      <section class="section" aria-labelledby="related">
+        <h2 id="related">Related guides</h2>
+        <div class="grid">
+          {related.map((item) => (
+            <article class="card">
+              <h3><a href={`/articles/${item.id}/`}>{item.data.title}</a></h3>
+              <p>{item.data.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    )}
+
+    <section class="section">
+      <div class="note">
+        <p>
+          This guide is general information for business owners, not legal, tax or
+          accounting advice. Requirements and prices change — confirm the details with the
+          agency or provider linked above, and with a licensed professional in your state.
+        </p>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

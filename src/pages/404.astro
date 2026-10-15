@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { CATEGORIES } from '../data/site';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="That page does not exist on The Owner's Handbook. Use the categories below to find the guide you were looking for."
+  noindex={true}
+>
+  <h1>That page does not exist</h1>
+  <p class="meta">The link may be out of date, or the guide may not be published yet.</p>
+
+  <div class="prose">
+    <p>Try one of these instead:</p>
+    <ul>
+      <li><a href="/articles/">All guides</a> — everything published so far</li>
+      {CATEGORIES.map((category) => (
+        <li><a href={`/categories/${category.slug}/`}>{category.name}</a></li>
+      ))}
+      <li><a href="/">Home</a></li>
+    </ul>
+  </div>
+</BaseLayout>

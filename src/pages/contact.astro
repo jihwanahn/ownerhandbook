@@ -1,0 +1,66 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE } from '../data/site';
+
+const jsonLd = [
+  {
+    '@type': 'ContactPage',
+    '@id': `${SITE.url}/contact/#webpage`,
+    url: `${SITE.url}/contact/`,
+    name: `Contact | ${SITE.name}`,
+    description:
+      'How to reach The Owner\'s Handbook — corrections, questions, advertising and partnership enquiries.',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+];
+---
+
+<BaseLayout
+  title="Contact"
+  description="Contact The Owner's Handbook by email for corrections, questions, or advertising and partnership enquiries. We read everything and reply within a few business days."
+  canonicalPath="/contact/"
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Contact' }]} />
+
+  <h1>Contact us</h1>
+
+  <div class="prose">
+    <p>
+      Email is the way to reach us: <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>
+    </p>
+    <p>
+      We are a small editorial team, so a specific subject line gets you a faster answer.
+      Please use one of these:
+    </p>
+    <ul>
+      <li><strong>Correction:</strong> the page URL and what is wrong — include the source if you have one. Corrections are our priority.</li>
+      <li><strong>Question about a guide:</strong> the page URL and where it lost you.</li>
+      <li><strong>Advertising or partnership:</strong> who you are, what you are proposing, and a link.</li>
+      <li><strong>Something else:</strong> whatever it is.</li>
+    </ul>
+
+    <h2>Response times</h2>
+    <p>
+      We aim to reply to corrections within one to two business days, and to everything
+      else within a few business days.
+    </p>
+
+    <h2>What we cannot do</h2>
+    <p>
+      We cannot give legal, tax, accounting or financial advice, review your specific
+      situation, or recommend a specific professional in your area. The guides explain how
+      the requirements work; a licensed professional in your state applies them to you.
+    </p>
+
+    <h2>Editorial team</h2>
+    <p>
+      {SITE.name} is published by an independent editorial team. Guides are researched,
+      written and reviewed in-house before publication — the process is described in our
+      <a href="/editorial-policy/">editorial policy</a>, and the site is run by the owner
+      of <strong>{SITE.domain}</strong>.
+    </p>
+  </div>
+</BaseLayout>

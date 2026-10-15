@@ -1,0 +1,40 @@
+---
+import { SITE, FOOTER_LINKS, CATEGORIES } from '../data/site';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap footer-grid">
+    <div>
+      <h2>{SITE.name}</h2>
+      <p>{SITE.description}</p>
+      <p><a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a></p>
+    </div>
+
+    <nav aria-label="Site">
+      <h2>Site</h2>
+      <ul class="footer-links">
+        {FOOTER_LINKS.map((link) => (
+          <li><a href={link.href}>{link.label}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <nav aria-label="Guide categories">
+      <h2>Guides</h2>
+      <ul class="footer-links">
+        {CATEGORIES.map((category) => (
+          <li><a href={`/categories/${category.slug}/`}>{category.name}</a></li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="wrap footer-legal">
+    <p>
+      &copy; {year} {SITE.name}. All rights reserved. {SITE.name} publishes general
+      information for small business owners. It is not legal, tax, accounting or
+      financial advice; consult a licensed professional about your situation.
+    </p>
+  </div>
+</footer>

@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE } from '../data/site';
+
+const updated = 'October 15, 2026';
+
+const jsonLd = [
+  {
+    '@type': 'WebPage',
+    '@id': `${SITE.url}/editorial-policy/#webpage`,
+    url: `${SITE.url}/editorial-policy/`,
+    name: `Editorial Policy | ${SITE.name}`,
+    description:
+      'How The Owner\'s Handbook researches, writes, reviews, sources and corrects its guides.',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+];
+---
+
+<BaseLayout
+  title="Editorial Policy"
+  description="How every guide on The Owner's Handbook is researched, sourced, reviewed before publishing, and corrected — including our policy on sensitive business topics and AI-assisted research."
+  canonicalPath="/editorial-policy/"
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Editorial Policy' }]} />
+
+  <h1>Editorial Policy</h1>
+  <p class="meta">Last updated: {updated}</p>
+
+  <div class="prose">
+    <p>
+      This is the standard every {SITE.name} guide has to meet before it is published, and
+      the process used to get it there.
+    </p>
+
+    <h2>1. One guide, one question</h2>
+    <p>
+      Every guide targets a specific question an owner actually types into a search box —
+      "how much does it cost to start a pressure washing business", "what licenses do I need
+      to start a daycare". If a draft answers several unrelated questions, it is split. We
+      do not publish pages that exist only to rank for keyword variations.
+    </p>
+
+    <h2>2. Primary sources, stated and linked</h2>
+    <p>
+      Facts come from the source that owns them, not from another blog's summary:
+    </p>
+    <ul>
+      <li>Licensing, registration and filing requirements — the state or local agency that issues them, plus the SBA and IRS where they apply.</li>
+      <li>Costs — published vendor pricing, public fee schedules and equipment listings, with the assumption stated.</li>
+      <li>Software and tools — the vendor's own pricing page, checked at the time of writing.</li>
+    </ul>
+    <p>
+      Sources are linked in the article and listed in a Sources block at the end. Where a
+      number is our own estimate rather than a published figure, it is labelled as one and
+      the method is shown.
+    </p>
+
+    <h2>3. Numbers with the math visible</h2>
+    <p>
+      Cost guides show line items — equipment, insurance, licensing fees, vehicle, marketing,
+      working capital — with a total and a stated range. A table you can compare against your
+      own quotes is more useful than a single headline figure.
+    </p>
+
+    <h2>4. Written for owners, not for search engines</h2>
+    <p>
+      Plain English, short paragraphs, no filler introductions. We would rather publish a
+      guide that answers the question in 1,200 useful words than one padded to 3,000 words
+      that does not. Accuracy and completeness are the gate; word count is not a target.
+    </p>
+
+    <h2>5. Review before publication</h2>
+    <p>
+      No guide goes live until it has passed an internal review covering:
+    </p>
+    <ul>
+      <li><strong>Accuracy</strong> — every factual claim traceable to a linked source.</li>
+      <li><strong>Currency</strong> — fees, forms and prices checked against the source at the time of writing, and the article dated accordingly.</li>
+      <li><strong>Originality</strong> — checked against existing sources and our own library for duplication.</li>
+      <li><strong>Policy fit</strong> — no medical, legal, investment or tax advice presented as advice; no misleading claims; images licensed for use.</li>
+    </ul>
+    <p>
+      Drafts are excluded from the published site by the build itself, so an unreviewed
+      article cannot be indexed by accident.
+    </p>
+
+    <h2>6. Language and market</h2>
+    <p>
+      Guides are written in English for a United States audience. Where a requirement is
+      set at state or local level, we say so and link to the state agency rather than
+      generalising a single state's rule to the whole country.
+    </p>
+
+    <h2>7. Sensitive topics</h2>
+    <p>
+      Business formation, licensing, tax registration and insurance touch on legal and
+      financial matters. Our guides explain how these work and where the authoritative
+      source is; they do not tell you what to do in your specific situation. Every guide
+      closes with a plain statement that it is general information and that a licensed
+      professional should be consulted for your own case.
+    </p>
+
+    <h2>8. AI-assisted research — disclosure</h2>
+    <p>
+      We use software, including AI tools, to help with research, drafting and checking —
+      the way a publisher uses any research tool. It is not a substitute for the review
+      step: published guides are assembled from cited primary sources, verified against
+      those sources, and reviewed by a human editor before they appear on the site. Tool
+      output that cannot be traced to a source is not published.
+    </p>
+
+    <h2>9. Corrections</h2>
+    <p>
+      If something is wrong or out of date, email
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a> with the page URL and,
+      if you have it, the source. Verified corrections are applied promptly and the
+      article's updated date changes. Substantive corrections are noted in the article
+      itself.
+    </p>
+
+    <h2>10. Advertising independence</h2>
+    <p>
+      The site is supported by display advertising. Advertisers have no influence over what
+      we cover, what we recommend, or how a product is described, and paid placement is
+      never presented as editorial content. If a guide includes an affiliate link, that is
+      disclosed at the top of the guide.
+    </p>
+  </div>
+</BaseLayout>

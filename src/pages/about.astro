@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE, absoluteUrl } from '../data/site';
+
+const jsonLd = [
+  {
+    '@type': 'AboutPage',
+    '@id': `${SITE.url}/about/#webpage`,
+    url: `${SITE.url}/about/`,
+    name: `About | ${SITE.name}`,
+    description:
+      'Who publishes The Owner\'s Handbook, how the guides are researched, and what the site does and does not cover.',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+    about: { '@id': `${SITE.url}/#organization` },
+  },
+];
+---
+
+<BaseLayout
+  title="About"
+  description="The Owner's Handbook publishes practical, source-cited guides for US small business owners: startup costs, licensing, pricing, tools and getting customers."
+  canonicalPath="/about/"
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'About' }]} />
+
+  <h1>About {SITE.name}</h1>
+
+  <div class="prose">
+    <p>
+      {SITE.name} is a working handbook for people who own a small business in the United
+      States — or are about to start one. We answer the questions that come up in the first
+      two years, when the difference between a rough month and a closed business is usually
+      a detail nobody explained: the license you did not know you needed, the fee that
+      doubled, the price that did not cover your time.
+    </p>
+
+    <h2>What we cover</h2>
+    <ul>
+      <li><strong>Starting a business</strong> — industry-by-industry, in the order the steps actually happen.</li>
+      <li><strong>Startup costs</strong> — line-item breakdowns built from published prices, not guesses.</li>
+      <li><strong>Licensing and registration</strong> — entities, EINs, state and local licenses, permits and renewals, linked to the agencies that own the requirement.</li>
+      <li><strong>Pricing</strong> — job costing and rate setting so the work pays for itself.</li>
+      <li><strong>Tools and software</strong> — what a one- or two-person shop actually needs, and what it costs at that size.</li>
+      <li><strong>Getting customers</strong> — local search, reviews, referrals and repeat business.</li>
+    </ul>
+
+    <h2>How the guides are made</h2>
+    <p>
+      Each guide starts from the primary source for its subject: the state agency that
+      issues the license, the SBA and IRS where they apply, and vendor pricing pages for
+      tools and supplies. We state our assumptions and link what we cite, so you can check
+      the numbers against your own market. Read the full process in our
+      <a href="/editorial-policy/">editorial policy</a>.
+    </p>
+
+    <h2>What this site is not</h2>
+    <p>
+      {SITE.name} is not a law firm, an accounting firm or a licensed insurance agency. Our
+      guides are general information to help you ask better questions — they are not legal,
+      tax, accounting or financial advice for your specific situation. For decisions with
+      real consequences, work with a professional licensed in your state.
+    </p>
+
+    <h2>Corrections</h2>
+    <p>
+      Requirements, fees and prices change. If you find something on this site that is out
+      of date or wrong, email us at <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
+      Verified corrections are applied and noted in the article's update date.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions, corrections, and partnership or advertising enquiries are welcome at
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>. See the
+      <a href="/contact/">contact page</a> for details.
+    </p>
+  </div>
+</BaseLayout>

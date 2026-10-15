@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Breadcrumbs from '../components/Breadcrumbs.astro';
+import { SITE } from '../data/site';
+
+const updated = 'October 15, 2026';
+
+const jsonLd = [
+  {
+    '@type': 'WebPage',
+    '@id': `${SITE.url}/privacy-policy/#webpage`,
+    url: `${SITE.url}/privacy-policy/`,
+    name: `Privacy Policy | ${SITE.name}`,
+    description:
+      'How The Owner\'s Handbook handles information, cookies, Google advertising, analytics and your privacy choices.',
+    isPartOf: { '@id': `${SITE.url}/#website` },
+    inLanguage: SITE.locale,
+  },
+];
+---
+
+<BaseLayout
+  title="Privacy Policy"
+  description="How The Owner's Handbook collects and uses information, the cookies we and our partners use, how Google advertising works on this site, the analytics we run, and the privacy choices available to you."
+  canonicalPath="/privacy-policy/"
+  jsonLd={jsonLd}
+>
+  <Breadcrumbs items={[{ label: 'Home', href: '/' }, { label: 'Privacy Policy' }]} />
+
+  <h1>Privacy Policy</h1>
+  <p class="meta">Last updated: {updated}</p>
+
+  <div class="prose">
+    <p>
+      This Privacy Policy explains how {SITE.name} ("we", "us", "our") handles information
+      when you visit <strong>{SITE.domain}</strong> (the "Site"). By using the Site you agree
+      to this policy.
+    </p>
+
+    <h2>Information we collect</h2>
+    <ul>
+      <li>
+        <strong>Information you give us.</strong> If you email us, we receive your email
+        address and whatever you write. We use it to reply and to keep a record of the
+        correspondence.
+      </li>
+      <li>
+        <strong>Information collected automatically.</strong> Like most websites, our
+        hosting and analytics providers record standard technical data when you load a page:
+        IP address, browser and device type, operating system, referring page, the pages you
+        view and the time of your visit. This is used in aggregate to understand what is
+        useful and to keep the Site working.
+      </li>
+    </ul>
+    <p>
+      We do not ask for and do not want sensitive personal information — do not send us
+      Social Security numbers, tax IDs, bank details or other confidential business records.
+    </p>
+
+    <h2>Cookies and similar technologies</h2>
+    <p>
+      Cookies are small text files stored by your browser. The Site and the third-party
+      services we use may set cookies for the following purposes:
+    </p>
+    <ul>
+      <li><strong>Essential operation</strong> — security, load balancing, bot protection and remembering basic preferences.</li>
+      <li><strong>Analytics</strong> — understanding which pages are read and how visitors arrive, in aggregate.</li>
+      <li><strong>Advertising</strong> — serving ads, limiting how often you see the same ad, and measuring ad performance.</li>
+    </ul>
+    <p>
+      You can block or delete cookies in your browser settings. Blocking cookies may affect
+      how parts of the Site display. Where required by law, we ask for consent before
+      setting non-essential cookies.
+    </p>
+
+    <h2>Google advertising (Google AdSense)</h2>
+    <p>
+      This Site is supported by advertising and uses <strong>Google AdSense</strong> to
+      display ads. Google and its partners use cookies and similar technologies to serve ads
+      based on your prior visits to this and other websites.
+    </p>
+    <ul>
+      <li>
+        Google's use of advertising cookies enables it and its partners to serve ads to you
+        based on your visit to this Site and/or other sites on the internet.
+      </li>
+      <li>
+        Google uses the <strong>DoubleClick</strong> cookie (and similar identifiers) for
+        interest-based advertising.
+      </li>
+      <li>
+        You can opt out of personalised advertising by visiting
+        <a href="https://www.google.com/settings/ads" rel="noopener nofollow">Google Ads Settings</a>,
+        or opt out of third-party vendor cookies for personalised advertising at
+        <a href="https://www.aboutads.info/choices/" rel="noopener nofollow">www.aboutads.info</a>
+        and <a href="https://www.youronlinechoices.eu/" rel="noopener nofollow">Your Online Choices</a> (EU/UK).
+      </li>
+      <li>
+        For more detail, see
+        <a href="https://policies.google.com/technologies/ads" rel="noopener nofollow">How Google uses cookies in advertising</a>
+        and the
+        <a href="https://policies.google.com/technologies/partner-sites" rel="noopener nofollow">Google partner sites policy</a>.
+      </li>
+    </ul>
+    <p>
+      Ads served to visitors in the European Economic Area, the United Kingdom and
+      Switzerland are subject to Google's consent requirements; a consent message is shown
+      before personalised advertising cookies are set.
+    </p>
+
+    <h2>Analytics</h2>
+    <p>
+      We use privacy-respecting, aggregate measurement of traffic. We may use
+      <strong>Cloudflare Web Analytics</strong> (cookieless) and/or <strong>Google
+      Analytics 4</strong> to understand which guides are read. Google Analytics reports
+      aggregated statistics and may use cookies; you can opt out with the
+      <a href="https://tools.google.com/dlpage/gaoptout" rel="noopener nofollow">Google Analytics Opt-out Browser Add-on</a>.
+      We do not attempt to identify individual visitors from analytics data.
+    </p>
+
+    <h2>Third parties we share data with</h2>
+    <p>
+      We do not sell personal information. Data is shared only with service providers who
+      operate the Site on our behalf, and only as needed:
+    </p>
+    <ul>
+      <li><strong>Hosting / CDN</strong> — serves the Site and processes technical request logs.</li>
+      <li><strong>Advertising partners</strong> — Google AdSense and its ad partners, as described above.</li>
+      <li><strong>Analytics providers</strong> — aggregate traffic measurement, as described above.</li>
+      <li><strong>Legal requirements</strong> — where we are required to disclose information by law, or to protect the rights and safety of the Site or others.</li>
+    </ul>
+    <p>
+      Some of these providers process data in the United States and other countries; where
+      required, transfers rely on standard contractual clauses or equivalent safeguards.
+    </p>
+
+    <h2>Embedded and outbound content</h2>
+    <p>
+      Some guides link to external sources (government agencies, vendors, tools). Those
+      sites have their own privacy policies and we are not responsible for their practices.
+      If we embed content from another service, that service may set cookies as if you had
+      visited it directly.
+    </p>
+
+    <h2>How long we keep information</h2>
+    <p>
+      Correspondence by email is kept as long as needed to handle your enquiry and for our
+      records. Aggregate analytics data is retained according to the provider's standard
+      retention settings. Server logs are short-lived.
+    </p>
+
+    <h2>Children</h2>
+    <p>
+      The Site is written for adults running or starting a business. It is not directed to
+      children, and we do not knowingly collect personal information from anyone under 16.
+      If you believe a child has provided us information, contact us and we will delete it.
+    </p>
+
+    <h2>Your privacy rights</h2>
+    <p>
+      Depending on where you live, you may have the right to access, correct, delete or
+      receive a copy of your personal information, to object to or restrict certain
+      processing, and to opt out of the sale or sharing of personal information for
+      targeted advertising. We do not sell personal information as commonly defined, but
+      advertising cookies may be treated as "sharing" under California law — use the opt-out
+      links above or contact us to exercise your rights. You will not be discriminated
+      against for exercising them. Email
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a> and we will respond
+      within the time required by applicable law.
+    </p>
+
+    <h2>Do Not Track</h2>
+    <p>
+      Browsers' "Do Not Track" signals are not interpreted by the Site. Use the cookie and
+      advertising controls described above instead.
+    </p>
+
+    <h2>Changes to this policy</h2>
+    <p>
+      We may update this policy as the Site or the law changes. The "Last updated" date at
+      the top always reflects the current version, and material changes will be noted on
+      this page.
+    </p>
+
+    <h2>Contact</h2>
+    <p>
+      Questions about this policy or your data:
+      <a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a> — see also our
+      <a href="/contact/">contact page</a>.
+    </p>
+  </div>
+</BaseLayout>

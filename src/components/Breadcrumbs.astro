@@ -1,0 +1,40 @@
+---
+/**
+ * Visible breadcrumb trail + matching BreadcrumbList structured data.
+ * Depth is deliberately capped (Home -> Hub -> Page) to keep crawl paths short.
+ */
+interface Crumb {
+  label: string;
+  href?: string;
+}
+
+interface Props {
+  items: Crumb[];
+}
+
+const { items } = Astro.props;
+
+const breadcrumbLd = {
+  '@type': 'BreadcrumbList',
+  itemListElement: items.map((item, index) => ({
+    '@type': 'ListItem',
+    position: index + 1,
+    name: item.label,
+    ...(item.href ? { item: new URL(item.href, Astro.site).toString() } : {}),
+  })),
+};
+---
+
+<nav class="breadcrumbs" aria-label="Breadcrumb">
+  <ol>
+    {items.map((item) => (
+      <li>
+        {item.href ? <a href={item.href}>{item.label}</a> : <span aria-current="page">{item.label}</span>}
+      </li>
+    ))}
+  </ol>
+</nav>
+<script
+  type="application/ld+json"
+  set:html={JSON.stringify({ '@context': 'https://schema.org', ...breadcrumbLd })}
+/>

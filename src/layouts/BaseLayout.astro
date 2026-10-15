@@ -1,0 +1,44 @@
+---
+import Seo from '../components/Seo.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  canonicalPath?: string;
+  image?: string;
+  ogType?: 'website' | 'article';
+  publishedTime?: string;
+  modifiedTime?: string;
+  author?: string;
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { ...seoProps } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <Seo {...seoProps} />
+    <!--
+      Analytics: no third-party script is loaded yet on purpose.
+      When Cloudflare Web Analytics / GA4 is switched on, add it here as a
+      <script> (Cloudflare Web Analytics is cookieless, so the Privacy Policy's
+      cookie disclosures stay accurate and no consent banner is required).
+    -->
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header />
+    <main id="main">
+      <div class="wrap">
+        <slot />
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>
