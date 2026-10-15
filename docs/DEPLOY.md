@@ -56,6 +56,24 @@ GitHub is connected.
 the repo is Cloudflare-specific except `public/_headers` (Cloudflare header rules),
 which Vercel ignores; on Vercel, security headers would move to `vercel.json`.
 
+## Changing the domain or site name
+
+The domain is defined in exactly one place — `SITE.url` in `src/data/site.ts`.
+`astro.config.mjs` imports it, and canonicals, `sitemap-index.xml`, `robots.txt`,
+structured data, OG tags and the RSS feed all derive from it. So the swap is:
+
+1. Edit `SITE.url` (and `SITE.name` / `SITE.domain` / `SITE.contactEmail`) in
+   `src/data/site.ts`.
+2. `npm run build && npm run verify` — the verifier asserts the canonical host on
+   every page, so a half-finished rename fails the check instead of shipping.
+3. Add the new domain in Cloudflare Pages, point DNS, keep the old domain
+   redirecting to the new one, and change the Search Console property (including
+   "Change of Address" if the old domain was already live and indexed).
+
+No page, template or content file hardcodes the domain, so no other edits are
+needed. Guides already published on the old domain would need a one-time redirect
+rule; nothing published yet, so a rename today is free.
+
 ## Post-deploy verification checklist
 
 ```bash

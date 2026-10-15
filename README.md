@@ -6,7 +6,8 @@ guide site for a US audience. Built with Astro, deployed to Cloudflare Pages.
 - **Local path:** `E:\ownerhandbook`
 - **Stack:** Astro 5 (static output) + `@astrojs/sitemap` + `@astrojs/rss`
 - **Hosting:** Cloudflare Pages (free tier), Git-connected to the GitHub repo
-- **Site URL (canonical):** `https://ownerhandbook.com` — set once in `astro.config.mjs`
+- **Site URL (canonical):** `https://ownerhandbook.com` — defined once as `SITE.url`
+  in `src/data/site.ts`; every canonical, sitemap entry and schema URL derives from it
 
 ## Commands
 
@@ -45,9 +46,10 @@ src/
     categories/[category].astro     category hub pages
     about | contact | privacy-policy | editorial-policy | 404
     rss.xml.ts                      RSS feed
+    robots.txt.ts                   robots.txt, generated from SITE.url
   styles/global.css       all styling (no framework, small payload)
 public/
-  robots.txt  _headers  favicon.svg  og-default.png
+  _headers  favicon.svg  og-default.png
 docs/
   DEPLOY.md               deployment runbook (Cloudflare Pages + Vercel)
   SEO.md                  information architecture, metadata and schema rules
