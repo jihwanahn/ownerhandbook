@@ -10,7 +10,8 @@
     "preview": "astro preview",
     "verify": "node scripts/verify-seo.mjs",
     "og:image": "node scripts/generate-og-image.mjs",
-    "astro": "astro"
+    "astro": "astro",
+    "rename": "node scripts/rename-site.mjs"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.12",

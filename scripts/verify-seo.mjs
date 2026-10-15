@@ -11,10 +11,16 @@ import { readdirSync, readFileSync, statSync, existsSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve } from 'node:path';
+import { readSite, escapeRe } from './site-config.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dist = join(root, 'dist');
-const ORIGIN = 'https://ownerhandbook.com';
+
+// The expected origin comes from src/data/site.ts, the single source of truth —
+// never from a literal in this file. A half-finished rename therefore fails the
+// checks below instead of shipping a mismatched canonical host.
+const site = readSite();
+const ORIGIN = site.url;
 
 if (!existsSync(dist)) {
   console.error('dist/ not found — run `npm run build` first.');
@@ -41,6 +47,29 @@ const pagePathFor = (file) => {
 };
 
 const pages = new Map(htmlFiles.map((f) => [pagePathFor(f), f]));
+
+// ---- 0. single source of truth: no other file may hardcode the domain -----
+
+// Renaming the site must stay a one-place change. Anything under src/ (except
+// site.ts itself), astro.config.mjs and scripts/ that spells out the domain is
+// one more edit waiting to be forgotten, so fail before that ships.
+const singleSourceFiles = [
+  ...walk(join(root, 'src')),
+  join(root, 'astro.config.mjs'),
+  ...walk(join(root, 'scripts')),
+].filter(
+  (file) =>
+    file !== join(root, 'src', 'data', 'site.ts') &&
+    /\.(ts|tsx|astro|js|mjs|json|md)$/.test(file),
+);
+
+for (const file of singleSourceFiles) {
+  if (readFileSync(file, 'utf8').includes(site.domain)) {
+    errors.push(
+      `${relative(root, file).split('\\').join('/')}: hardcodes "${site.domain}" — reference SITE from src/data/site.ts instead`,
+    );
+  }
+}
 
 // ---- 1. per-page head/link/schema checks ---------------------------------
 
@@ -70,7 +99,7 @@ for (const [path, file] of pages) {
   const title = html.match(/<title>([^<]*)<\/title>/);
   if (!title || title[1].trim().length < 10) errors.push(`${label}: missing/too-short <title>`);
 
-  if (!/<meta property="og:image" content="https:\/\/ownerhandbook\.com\//.test(html)) {
+  if (!new RegExp(`<meta property="og:image" content="${escapeRe(ORIGIN)}/`).test(html)) {
     errors.push(`${label}: og:image missing or not absolute`);
   }
 

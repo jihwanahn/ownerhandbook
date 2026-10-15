@@ -16,6 +16,8 @@ npm install          # install dependencies
 npm run dev          # local dev server (shows drafts too)
 npm run build        # production build -> dist/
 npm run preview      # serve dist/ locally
+npm run verify       # post-build SEO checks (run after every build)
+npm run rename -- --name "…" --domain example.com   # rename/re-domain in one command
 node scripts/generate-og-image.mjs   # regenerate public/og-default.png
 ```
 

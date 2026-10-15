@@ -58,21 +58,38 @@ which Vercel ignores; on Vercel, security headers would move to `vercel.json`.
 
 ## Changing the domain or site name
 
-The domain is defined in exactly one place — `SITE.url` in `src/data/site.ts`.
+The domain is defined in exactly one place — `SITE` in `src/data/site.ts`.
 `astro.config.mjs` imports it, and canonicals, `sitemap-index.xml`, `robots.txt`,
-structured data, OG tags and the RSS feed all derive from it. So the swap is:
+structured data, OG tags and the RSS feed all derive from it. So the swap is one
+command:
 
-1. Edit `SITE.url` (and `SITE.name` / `SITE.domain` / `SITE.contactEmail`) in
-   `src/data/site.ts`.
-2. `npm run build && npm run verify` — the verifier asserts the canonical host on
-   every page, so a half-finished rename fails the check instead of shipping.
-3. Add the new domain in Cloudflare Pages, point DNS, keep the old domain
-   redirecting to the new one, and change the Search Console property (including
-   "Change of Address" if the old domain was already live and indexed).
+```bash
+npm run rename -- --name "New Site Name" --domain newdomain.com
+# optional: --short "New Short" --email hello@newdomain.com --slug new-repo
+#           --publisher "…" --dry-run --no-docs
+npm run build && npm run verify
+```
 
-No page, template or content file hardcodes the domain, so no other edits are
-needed. Guides already published on the old domain would need a one-time redirect
-rule; nothing published yet, so a rename today is free.
+The script rewrites `SITE` (name, short name, domain, URL, publisher, contact
+email — plus any in-prose mention of the old name in the same block), the npm
+package slug in `package.json` / `package-lock.json`, and the prose domain in
+`README.md` / `docs/*.md`. Then `npm run verify` re-checks the generated output:
+
+- the verifier takes the expected origin from `src/data/site.ts` (never from a
+  literal of its own) and asserts the canonical host, `og:image` host, sitemap
+  hosts and the `robots.txt` sitemap line on every page;
+- it also fails if *any* file under `src/`, `astro.config.mjs` or `scripts/`
+  hardcodes the configured domain, so a stray literal cannot survive a rename.
+
+After the code-side rename:
+
+1. Push, and add the new domain in Cloudflare Pages; point DNS at it.
+2. Keep the old domain redirecting to the new one.
+3. Move the Search Console property, including "Change of Address" if the old
+   domain was already live and indexed.
+
+Guides already published on the old domain would need a one-time redirect rule;
+nothing is published yet, so a rename today is free.
 
 ## Post-deploy verification checklist
 
