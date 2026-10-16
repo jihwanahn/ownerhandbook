@@ -17,6 +17,9 @@ uploads the file:
   7. Feature requirements from JHL-4 §1: figure/figcaption styling, three
      AdSense containers, lazy-image handling, dark mode, no external JS or
      web fonts, CSS budget.
+  8. No host or site name is baked into rendered markup — the blog must survive
+     a rename or a custom-domain switch without a code edit (JHL-4 constraint).
+     Widget titles are settings, so the site name may appear there only.
 
 Usage:
     python blogger/theme/verify_theme.py [path/to/theme.xml]
@@ -25,6 +28,7 @@ Exit code 0 = all checks passed.
 
 from __future__ import annotations
 
+import html
 import os
 import re
 import sys
@@ -66,6 +70,31 @@ ALLOWED_DATA_TAGS = {
 
 EXTERNAL_JS_RE = re.compile(r"<script[^>]+src=['\"]https?://", re.I)
 WEBFONT_RE = re.compile(r"fonts\.googleapis\.com|fonts\.gstatic\.com|@import\s+url\(['\"]?https?://", re.I)
+
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "config.json")
+
+
+def configured_site_names() -> list[str]:
+    """Site identifiers taken from blogger/config.json (the single source of truth).
+
+    The theme must not bake any of these into rendered markup: the blog has to keep
+    working unchanged after a rename or a custom-domain switch, which is an explicit
+    JHL-4 constraint ("URL·사이트명 하드코딩 금지 — 설정값으로").
+    """
+    import json
+
+    try:
+        with open(CONFIG_PATH, encoding="utf-8") as fh:
+            cfg = json.load(fh)
+    except (OSError, ValueError):
+        return []
+    names = {cfg.get("siteName") or ""}
+    blog = cfg.get("blog") or {}
+    for key in ("blogspotUrl", "customDomainUrl"):
+        url = blog.get(key)
+        if url:
+            names.add(url.split("//", 1)[-1].strip("/").split("/")[0])
+    return sorted(n for n in names if n)
 
 AD_SLOT_IDS = ("ad-top", "ad-in-article", "ad-bottom")
 
@@ -161,6 +190,20 @@ def main(path: str) -> int:
     markup_only = re.sub(r"<!--.*?-->", "", markup_only, flags=re.S)
     double_quoted = re.findall(r"\s(?:expr:)?[A-Za-z_-]+=\"", markup_only)
     check(not double_quoted, "all tag attributes are single quoted", str(double_quoted[:5]))
+
+    print("\n[5b] No hard-coded host or site name (JHL-4 constraint)")
+    # Rendered markup only: CDATA, XML declaration, comments and namespace
+    # declarations never reach the page, so they are out of scope here.
+    rendered = re.sub(r"\sxmlns(?::[A-Za-z]+)?='[^']*'", "", markup_only)
+    hard_urls = sorted(set(re.findall(r"=(?:expr:)?'https?://[^']*'", rendered)))
+    check(not hard_urls, "no absolute URL is hard-coded in markup", str(hard_urls))
+    # Widget titles are Blogger *settings* (editable under Layout), not code, so the
+    # site name may appear there — and nowhere else.
+    without_widget_titles = html.unescape(re.sub(r"\stitle='[^']*'", "", rendered))
+    names = configured_site_names()
+    leaked = sorted(n for n in names if n in without_widget_titles)
+    check(not leaked, "site name appears only in widget-title settings",
+          f"{leaked} (from config.json: {names})")
 
     print("\n[6] Feature requirements (JHL-4 §1)")
     check("figure" in raw and "figcaption" in raw, "figure/figcaption markup + styling present")

@@ -26,11 +26,32 @@ sys.path.insert(0, os.path.join(REPO, "blogger", "theme"))
 
 import blogger_api as api  # noqa: E402
 import md2blogger  # noqa: E402
+import verify_applied  # noqa: E402
 import verify_theme  # noqa: E402
 
 CFG = api.load_config()
 ASSETS = "https://example.github.io/owners-handbook-images"
 EXAMPLE = os.path.join(REPO, "content", "posts", "example-guide.md")
+
+# Minimal stand-in for a page rendered with the theme applied: the theme's own markers,
+# the tags the theme adds, and the tags Blogger emits exactly once.
+HEALTHY_PAGE = """<html><head>
+<!-- The Owner's Handbook theme comment that mentions <title> and canonical. -->
+<title>The Owner's Handbook</title>
+<link href='https://example.blogspot.com/' rel='canonical'/>
+<meta content='https://example.blogspot.com/' property='og:url'/>
+<meta content='https://example.blogspot.com/favicon.ico' property='og:image'/>
+<meta content='summary_large_image' name='twitter:card'/>
+<meta content='width=device-width, initial-scale=1' name='viewport'/>
+<script type='application/ld+json'>{"@type":"WebSite"}</script>
+<style><!-- .ad-slot { margin: 1.5rem 0; } --></style>
+</head><body>
+<header class='site-header'><h1 class='site-title'>The Owner's Handbook</h1></header>
+<nav class='site-nav'><ul class='page-list'><li><a href='/'>Home</a></li></ul></nav>
+<div class='ad-slot ad-top' id='ad-top'><!-- ADSENSE-TOP: empty --></div>
+<footer class='site-footer'>Copyright</footer>
+<div class='ad-slot ad-bottom' id='ad-bottom'><!-- ADSENSE-BOTTOM: empty --></div>
+</body></html>"""
 
 
 def convert(md: str, link_map: dict | None = None, base: str | None = ASSETS):
@@ -214,6 +235,66 @@ class ThemeTests(unittest.TestCase):
         with redirect_stdout(buffer):
             code = verify_theme.main(os.path.join(REPO, "blogger", "theme", "owners-handbook-v1.xml"))
         self.assertEqual(code, 0, buffer.getvalue())
+
+    def test_theme_validator_rejects_a_hard_coded_host(self):
+        """The check that would have caught the hard-coded og:image fallback."""
+        path = os.path.join(REPO, "blogger", "theme", "owners-handbook-v1.xml")
+        with open(path, encoding="utf-8") as fh:
+            raw = fh.read()
+        broken = raw.replace("expr:content='data:blog.homepageUrl + &quot;favicon.ico&quot;'",
+                             "content='https://example.blogspot.com/favicon.ico'")
+        self.assertNotEqual(broken, raw)
+        with tempfile.NamedTemporaryFile("w", suffix=".xml", encoding="utf-8",
+                                         delete=False) as fh:
+            fh.write(broken)
+            tmp = fh.name
+        try:
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                code = verify_theme.main(tmp)
+            self.assertEqual(code, 1, buffer.getvalue())
+            self.assertIn("no absolute URL is hard-coded", buffer.getvalue())
+        finally:
+            os.unlink(tmp)
+
+
+class AppliedThemeTests(unittest.TestCase):
+    """verify_applied.report() against synthetic pages — no network needed."""
+
+    def _run(self, html_text: str) -> tuple[int, str]:
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = verify_applied.report(html_text, "https://example.blogspot.com/")
+        return code, buffer.getvalue()
+
+    def test_reports_not_applied_on_a_stock_blogger_page(self):
+        code, out = self._run("<html><head><title>blog</title></head><body>hi</body></html>")
+        self.assertEqual(code, 3, out)
+        self.assertIn("NOT applied", out)
+
+    def test_reports_success_on_a_healthy_theme_page(self):
+        code, out = self._run(HEALTHY_PAGE)
+        self.assertEqual(code, 0, out)
+
+    def test_reports_missing_seo_tags_as_a_failure(self):
+        broken = HEALTHY_PAGE.replace("<meta content='summary_large_image' name='twitter:card'/>", "")
+        self.assertNotEqual(broken, HEALTHY_PAGE)
+        code, out = self._run(broken)
+        self.assertEqual(code, 1, out)
+        self.assertIn("twitter card", out)
+
+    def test_duplicate_title_is_a_failure(self):
+        broken = HEALTHY_PAGE.replace("</head>", "<title>second</title></head>")
+        code, out = self._run(broken)
+        self.assertEqual(code, 1, out)
+        self.assertIn("<title>: 2", out)
+
+    def test_comments_mentioning_title_do_not_count_as_tags(self):
+        """The theme's own header comment names <title>; it must not be counted."""
+        commented = HEALTHY_PAGE.replace("<head>", "<head><!-- keep <title> tags single -->")
+        code, out = self._run(commented)
+        self.assertEqual(code, 0, out)
+        self.assertIn("<title>: 1", out)
 
 
 class SafetyTests(unittest.TestCase):

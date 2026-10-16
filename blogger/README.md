@@ -108,8 +108,9 @@ non-kebab image filenames, missing `loading="lazy"`.
 ## Tests
 
 ```bash
-python blogger/tests/test_pipeline.py                 # 37 offline tests, no network
-python blogger/theme/verify_theme.py                  # 37 theme checks
+python blogger/tests/test_pipeline.py                 # 43 offline tests, no network
+python blogger/theme/verify_theme.py                  # 39 theme checks (XML, offline)
+python blogger/theme/verify_applied.py                # is the theme live? + its SEO tags (reads the public page)
 python blogger/images/optimize_images.py check        # image rules
 python blogger/tests/smoke_live.py --run              # live write path (writes 1 throwaway draft)
 ```
@@ -118,5 +119,11 @@ python blogger/tests/smoke_live.py --run              # live write path (writes 
 `smoke_live.py` is the opposite: it is the only script that talks to Blogger, needs an
 explicit `--run`, creates one throwaway draft, deletes it again and fails if the blog's
 draft count changed. Run it after any change to `blogger_api.py` or the publish path.
+
+`verify_applied.py` reads the public page (no credentials) and answers the one question
+the offline validator cannot: whether the theme is actually applied, and whether its SEO
+tags survived the install. Exit `0` = live and correct, `1` = live with an SEO problem,
+`3` = not applied yet. It is deliberately **not** part of `npm run verify:all`, because a
+`3` is a legitimate state (the theme is applied by hand) and would fail unrelated builds.
 
 Results of the runs recorded for this issue: `blogger/tests/RESULTS.md`.

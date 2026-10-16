@@ -38,9 +38,11 @@
     <meta expr:content='data:blog.postImageThumbnailUrl' property='og:image'/>
     <meta expr:content='data:blog.postImageThumbnailUrl' name='twitter:image'/>
   <b:else/>
-    <!-- Fallback social image. Replace the URL below with the deployed asset URL
-         (see blogger/images/IMAGE-RULES.md — hosted on GitHub Pages in Phase 2). -->
-    <meta content='https://ownerhandbook.blogspot.com/favicon.ico' property='og:image'/>
+    <!-- Fallback social image: the blog's own favicon, derived from data:blog.homepageUrl so
+         no host or site name is hard-coded here — after a custom-domain switch this keeps
+         pointing at the right place with no edit. Swap in a real 1200x630 share image once
+         the asset host is connected (blogger/images/IMAGE-RULES.md, Phase 2). -->
+    <meta expr:content='data:blog.homepageUrl + &quot;favicon.ico&quot;' property='og:image'/>
   </b:if>
   <meta content='summary_large_image' name='twitter:card'/>
   <!-- Blogger emits <meta name='description'> only when a search description exists
@@ -524,7 +526,7 @@ a:hover { text-decoration-thickness: 2px; }
 
   <aside class='sidebar' role='complementary'>
     <b:section class='sidebar-widgets' id='sidebar' maxwidgets='4' showaddelement='yes'>
-      <b:widget id='HTML1' locked='false' title='The Owner&#39;s Handbook' type='HTML' version='1'>
+      <b:widget id='HTML1' locked='false' title='About this site' type='HTML' version='1'>
         <b:widget-settings>
           <b:widget-setting name='content'>Step-by-step guides for starting and running a small business in the United States. Every guide cites primary sources: state agencies, the SBA, the IRS and published vendor pricing.</b:widget-setting>
         </b:widget-settings>
@@ -576,7 +578,7 @@ a:hover { text-decoration-thickness: 2px; }
       </b:widget>
       <b:widget id='HTML2' locked='false' title='' type='HTML' version='1'>
         <b:widget-settings>
-          <b:widget-setting name='content'>The Owner&#39;s Handbook is an independent publication. It is not legal, tax or accounting advice.</b:widget-setting>
+          <b:widget-setting name='content'>Independent publication. Not legal, tax or accounting advice.</b:widget-setting>
         </b:widget-settings>
         <b:includable id='main'>
           <div class='widget-content'>
