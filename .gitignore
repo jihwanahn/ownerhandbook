@@ -30,3 +30,6 @@ Thumbs.db
 blogger/images/build/
 __pycache__/
 *.pyc
+
+# runtime publishing state (recreated by blogger/publish.py create)
+content/published.json

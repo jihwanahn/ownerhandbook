@@ -219,6 +219,10 @@ class BloggerClient:
                 return json.loads(raw) if raw.strip() else {}
         except urllib.error.HTTPError as exc:
             raise ApiError(exc.code, url, exc.read().decode("utf-8", "replace")) from None
+        except urllib.error.URLError as exc:
+            # No HTTP status to report (offline, DNS, proxy, TLS). Surface it like any
+            # other API error so callers see one exception type, not a raw traceback.
+            raise ApiError(0, url, f"connection failed: {exc.reason}") from None
 
     # -- blogs -------------------------------------------------------------
 
@@ -245,8 +249,19 @@ class BloggerClient:
     def patch_post(self, post_id: str, patch: dict) -> dict:
         return self.request("PATCH", f"{BLOGGER_API}/blogs/{self.blog_id}/posts/{post_id}", patch)
 
-    def get_post(self, post_id: str) -> dict:
-        return self.request("GET", f"{BLOGGER_API}/blogs/{self.blog_id}/posts/{post_id}")
+    def get_post(self, post_id: str, view: str = "ADMIN") -> dict:
+        """Fetch one post.
+
+        Blogger's default (READER) view hides drafts: posts.get on a DRAFT answers
+        HTTP 404 unless view=ADMIN (or AUTHOR) is sent, even though the same id is
+        returned by posts.list?status=DRAFT. This pipeline lives on drafts, so ADMIN
+        is the default here.
+        """
+        return self.request(
+            "GET",
+            f"{BLOGGER_API}/blogs/{self.blog_id}/posts/{post_id}",
+            params={"view": view},
+        )
 
     def list_posts(self, status: str | None = None, max_results: int = 25) -> list[dict]:
         params = {"maxResults": str(max_results), "fetchBodies": "false"}
@@ -255,6 +270,11 @@ class BloggerClient:
         return self.request("GET", f"{BLOGGER_API}/blogs/{self.blog_id}/posts", params=params).get("items", [])
 
     def search_post(self, query: str) -> list[dict]:
+        """Text search over the blog.
+
+        Blogger's search endpoint only covers published posts — a draft is never a
+        hit — so treat a miss as "not published yet", not "does not exist".
+        """
         return self.request(
             "GET",
             f"{BLOGGER_API}/blogs/{self.blog_id}/posts/search",

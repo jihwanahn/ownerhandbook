@@ -14,7 +14,7 @@ blogger/
   md2blogger.py         markdown master -> Blogger HTML + quality gate
   theme/                lightweight theme v1 + offline validator + owner upload guide
   images/               image generation, WebP normalisation, audit (see IMAGE-RULES.md)
-  tests/                 offline test suite + recorded results
+  tests/                 offline suite + live smoke test + recorded results
 content/                markdown masters (posts/ and pages/) — permanent source of truth
 assets/images/          published image files (WebP, 1200px)
 ```
@@ -34,7 +34,7 @@ The issue left the language open, so: **Python 3, standard library only.**
 - Node is used for one job only: image encoding through `sharp` (libvips), which
   rasterises SVG and writes WebP without a system dependency chain.
 
-## One-time setup (owner, ~15 minutes, see JHL-1 §2 for the GCP steps)
+## One-time setup (owner — DONE 2026-10-16, see JHL-1 §2 for the GCP steps)
 
 1. GCP → APIs & Services → enable **Blogger API v3** (optionally Search Console API).
 2. OAuth consent screen → External → scopes
@@ -50,10 +50,14 @@ python blogger/oauth_login.py          # opens the browser; click Allow
 python blogger/oauth_login.py --check  # confirms the refresh token works and lists blogs
 ```
 
-The refresh token lands in `C:\Users\colds\jhl-secrets\blogger-oauth-token.json`.
+The owner completed all four steps on 2026-10-16 (chief of staff logged it on JHL-4);
+`--check` reports two authorised blogs and the target blog id. The refresh token lives
+in `C:\Users\colds\jhl-secrets\blogger-oauth-token.json`.
 **Secrets never leave those two files** — not into comments, issues, commits or logs.
 `tests/test_pipeline.py` includes a check that no real credential value appears
 anywhere under `blogger/`.
+
+If the token ever stops working, re-run step 4 — nothing else needs to change.
 
 Still to do on the Blogger side (owner, in the Blogger UI): Settings → Basics → the
 blog title/description, Settings → Crawlers and indexing → custom robots.txt and
@@ -71,15 +75,22 @@ python blogger/publish.py create content/posts/example-guide.md --assets-base ht
 # 4. owner reviews the draft preview in Blogger
 # 5. publish only after sign-off:
 python blogger/publish.py publish <postId> --confirm-owner-approved "who, when"
+# cleanup a throwaway or abandoned draft (drafts only unless --force-live):
+python blogger/publish.py delete <postId>
 ```
 
 - `create` uses `posts.insert?isDraft=true`; `update` uses `posts.patch` (URL kept);
-  `publish`/`revert` use `posts.publish` / `posts.revert`.
+  `publish`/`revert` use `posts.publish` / `posts.revert`; `delete` uses `posts.delete`
+  and drops the ledger entry.
 - `--dry-run` works for `create` and `update` with no credentials at all.
 - `publish` refuses to run without `--confirm-owner-approved`, and every approval is
   appended to `blogger/approvals.json`.
 - Drafts are recorded in `content/published.json` (postId, url, status); a slug's
   live URL is copied into `content/link-map.json` so later guides can link to it.
+- **Drafts and the API (learned the hard way, see `tests/RESULTS.md` §5):** `posts.get`
+  answers 404 for a draft unless it is asked with `view=ADMIN` (the client does this by
+  default now), `posts/search` never returns a draft, and a draft's `url` field is the
+  blog's home page because Blogger only mints a permalink on publish.
 - **Search descriptions:** Blogger API v3 has no field for them (`Post` has no
   `searchDescription`; only the editor writes it). The theme therefore emits the post
   snippet as a description fallback, and `md2blogger.py` reports the intended text so
@@ -97,9 +108,15 @@ non-kebab image filenames, missing `loading="lazy"`.
 ## Tests
 
 ```bash
-python blogger/tests/test_pipeline.py                 # 31 offline tests
+python blogger/tests/test_pipeline.py                 # 37 offline tests, no network
 python blogger/theme/verify_theme.py                  # 37 theme checks
-python blogger/images/optimize_images.py check         # image rules
+python blogger/images/optimize_images.py check        # image rules
+python blogger/tests/smoke_live.py --run              # live write path (writes 1 throwaway draft)
 ```
 
-Results of the run recorded for this issue: `blogger/tests/RESULTS.md`.
+`test_pipeline.py` never touches the network or the credentials, so it runs anywhere.
+`smoke_live.py` is the opposite: it is the only script that talks to Blogger, needs an
+explicit `--run`, creates one throwaway draft, deletes it again and fails if the blog's
+draft count changed. Run it after any change to `blogger_api.py` or the publish path.
+
+Results of the runs recorded for this issue: `blogger/tests/RESULTS.md`.

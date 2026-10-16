@@ -9,10 +9,14 @@ issue requires ("OAuth 완료 전 — 오프라인 검증·dry-run까지").
 from __future__ import annotations
 
 import io
+import json
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
+import urllib.error
+import urllib.request
 from contextlib import redirect_stdout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -255,6 +259,84 @@ class SafetyTests(unittest.TestCase):
                 if any(p in text for p in leak_patterns):
                     offenders.append(path)
         self.assertEqual(offenders, [])
+
+
+class ApiContractTests(unittest.TestCase):
+    """Regressions found by the first live smoke test (2026-10-16, after OAuth)."""
+
+    def test_get_post_asks_for_the_admin_view(self):
+        # Blogger's default READER view answers 404 for a DRAFT even though the same
+        # id is listed by posts.list?status=DRAFT. get_post must send view=ADMIN.
+        client = api.BloggerClient(CFG, token={"refresh_token": "stub"})
+        seen: dict = {}
+
+        def fake_request(method, url, body=None, params=None):
+            seen.update(method=method, url=url, params=params or {})
+            return {"id": "1", "status": "DRAFT"}
+
+        client.request = fake_request
+        post = client.get_post("1")
+        self.assertEqual(post["status"], "DRAFT")
+        self.assertEqual(seen["method"], "GET")
+        self.assertEqual(seen["params"].get("view"), "ADMIN")
+
+    def test_offline_connection_error_is_an_api_error(self):
+        client = api.BloggerClient(CFG, token={"access_token": "stub", "expires_at": 9e9})
+
+        def boom(*_args, **_kwargs):
+            raise urllib.error.URLError("no route to host")
+
+        original = urllib.request.urlopen
+        urllib.request.urlopen = boom
+        try:
+            with self.assertRaises(api.ApiError) as ctx:
+                client.request("GET", "https://www.googleapis.com/blogger/v3/blogs/1/posts")
+        finally:
+            urllib.request.urlopen = original
+        self.assertEqual(ctx.exception.status, 0)
+        self.assertIn("connection failed", ctx.exception.body)
+
+    def test_delete_subcommand_is_documented(self):
+        proc = subprocess.run(
+            [sys.executable, os.path.join(REPO, "blogger", "publish.py"), "--help"],
+            capture_output=True, text=True, cwd=REPO,
+        )
+        self.assertEqual(proc.returncode, 0)
+        self.assertIn("delete", proc.stdout)
+        self.assertIn("revert", proc.stdout)
+
+
+class PathAndHostTests(unittest.TestCase):
+    """The gate must follow config.json, and masters must work from any drive."""
+
+    IMG = ('<figure><img src="https://cdn.example.com/x.webp" alt="chart" '
+           'loading="lazy"/><figcaption>cap</figcaption></figure>')
+
+    def test_internal_links_follow_the_configured_host(self):
+        cfg = json.loads(json.dumps(CFG))
+        cfg["blog"]["blogspotUrl"] = "https://some-other-blog.blogspot.com"
+        cfg["blog"]["customDomainUrl"] = None
+        html = (self.IMG + '<p><a href="https://some-other-blog.blogspot.com/">home</a> '
+                '<a href="/p/about.html">about</a> <a href="https://third-party.example/">out</a></p>')
+        errors, warnings = gate(html, valid_meta(), cfg)
+        self.assertEqual(errors, [])
+        self.assertEqual([w for w in warnings if "internal link" in w], [])
+
+    def test_third_party_links_do_not_count_as_internal(self):
+        html = self.IMG + '<p><a href="https://third-party.example/">out</a></p>'
+        _errors, warnings = gate(html, valid_meta())
+        self.assertTrue([w for w in warnings if "internal link" in w], warnings)
+
+    def test_master_outside_the_repo_is_accepted(self):
+        with open(EXAMPLE, encoding="utf-8") as fh:
+            master_text = fh.read()
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "copied-guide.md")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(master_text)
+            report = md2blogger.build_post_payload(path, CFG, ASSETS, None)
+        self.assertTrue(report["source"])
+        self.assertEqual(report["slug"], "llc-cost-breakdown")
 
 
 if __name__ == "__main__":

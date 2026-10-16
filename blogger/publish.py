@@ -22,6 +22,7 @@ Usage:
     python blogger/publish.py list --status DRAFT
     python blogger/publish.py publish <postId> --confirm-owner-approved "Nina, 2026-10-20"
     python blogger/publish.py revert <postId>
+    python blogger/publish.py delete <postId>            # drafts only (cleanup / smoke test)
 """
 
 from __future__ import annotations
@@ -214,6 +215,29 @@ def _slug_for_post(post_id: str) -> str | None:
     return None
 
 
+def cmd_delete(cfg, args) -> int:
+    """Delete a post the API sees (the routine cleanup after a smoke test)."""
+    client = api.BloggerClient(cfg)
+    post = client.get_post(args.post_id)  # 404s before anything is removed
+    if post.get("status") == "LIVE" and not args.force_live:
+        print(f"Refusing to delete a LIVE post ({post.get('url')}).")
+        print("Revert it to a draft first (publish.py revert), or pass --force-live deliberately.")
+        return 3
+    client.delete_post(args.post_id)
+    slug = _slug_for_post(args.post_id)
+    if slug:
+        ledger = _read_json(LEDGER, {})
+        ledger.pop(slug, None)
+        _write_json(LEDGER, ledger)
+        link_map = _read_json(LINK_MAP, {})
+        if link_map.pop(slug, None) is not None:
+            _write_json(LINK_MAP, link_map)
+    print(f"Deleted: id={args.post_id} status={post.get('status')} title={post.get('title')!r}")
+    if slug:
+        print(f"Ledger entry for slug '{slug}' removed.")
+    return 0
+
+
 def cmd_list(cfg, args) -> int:
     client = api.BloggerClient(cfg)
     posts = client.list_posts(status=args.status, max_results=args.limit)
@@ -269,6 +293,11 @@ def main() -> int:
     p_rev = sub.add_parser("revert", help="turn a published post back into a draft")
     p_rev.add_argument("post_id")
 
+    p_del = sub.add_parser("delete", help="delete a draft (cleanup for smoke tests)")
+    p_del.add_argument("post_id")
+    p_del.add_argument("--force-live", dest="force_live", action="store_true",
+                       help="allow deleting a LIVE post (off by default)")
+
     p_list = sub.add_parser("list", help="list posts")
     p_list.add_argument("--status", choices=["DRAFT", "LIVE", "SCHEDULED"])
     p_list.add_argument("--limit", type=int, default=25)
@@ -284,7 +313,7 @@ def main() -> int:
     handlers = {
         "check": cmd_check, "create": cmd_create, "update": cmd_update,
         "publish": cmd_publish, "revert": cmd_revert, "list": cmd_list,
-        "get": cmd_get, "search": cmd_search,
+        "get": cmd_get, "search": cmd_search, "delete": cmd_delete,
     }
     return handlers[args.command](cfg, args)
 

@@ -34,6 +34,7 @@ import os
 import re
 import sys
 from html.parser import HTMLParser
+from urllib.parse import urlsplit
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(HERE)
@@ -427,8 +428,14 @@ def quality_gate(html_body: str, meta: dict, audit: TagAudit, cfg: dict,
     elif len(title) > 65:
         warnings.append(f"title is {len(title)} chars — keep titles under ~65 for full SERP display")
 
-    internal = re.findall(r'href="([^"]+)"', html_body)
-    internal = [h for h in internal if h.startswith(("http://ownerhandbook", "https://ownerhandbook", "/"))]
+    # Site host(s) come from config.json — never hard-coded, so the blogspot -> custom
+    # domain switch (or a rename) cannot silently break this check.
+    site_hosts = {urlsplit(url).netloc for url in (
+        (cfg.get("blog") or {}).get("customDomainUrl"),
+        (cfg.get("blog") or {}).get("blogspotUrl"),
+    ) if url}
+    hrefs = re.findall(r'href="([^"]+)"', html_body)
+    internal = [h for h in hrefs if h.startswith("/") or urlsplit(h).netloc in site_hosts]
     if len(internal) < 2:
         warnings.append(f"only {len(internal)} internal link(s) — target 2+ internal links per guide")
     if "link-missing" in html_body:
@@ -468,8 +475,13 @@ def build_post_payload(md_path: str, cfg: dict, base: str | None = None,
         "content": html_body,
         "labels": meta.get("labels", []),
     }
+    try:
+        source = os.path.relpath(md_path, REPO).replace("\\", "/")
+    except ValueError:
+        # master outside the repo (e.g. on another drive) — keep the path readable
+        source = os.path.abspath(md_path).replace("\\", "/")
     return {
-        "source": os.path.relpath(md_path, REPO).replace("\\", "/"),
+        "source": source,
         "slug": slug,
         "status": meta.get("status", "draft"),
         "search_description": meta.get("description", ""),
