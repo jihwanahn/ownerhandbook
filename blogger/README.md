@@ -12,7 +12,7 @@ blogger/
   publish.py            draft-first posts: create / update / publish / revert / list
   pages.py              About / Contact / Privacy as Blogger pages (draft-first)
   md2blogger.py         markdown master -> Blogger HTML + quality gate
-  theme/                lightweight theme v1 + offline validator + owner upload guide
+  theme/                two theme files (v1 + declaration variant) + generator + validator + owner upload guide
   images/               image generation, WebP normalisation, audit (see IMAGE-RULES.md)
   tests/                 offline suite + live smoke test + recorded results
 content/                markdown masters (posts/ and pages/) — permanent source of truth
@@ -108,12 +108,22 @@ non-kebab image filenames, missing `loading="lazy"`.
 ## Tests
 
 ```bash
-python blogger/tests/test_pipeline.py                 # 47 offline tests, no network
-python blogger/theme/verify_theme.py                  # 42 theme checks (XML, offline)
+python blogger/tests/test_pipeline.py                 # 61 offline tests, no network
+python blogger/theme/verify_theme.py blogger/theme/owners-handbook-v1.xml \
+                                     blogger/theme/owners-handbook-v2-decl.xml   # 45 + 49 checks
+python blogger/theme/decl_variant.py --check          # the two theme files differ in declarations only
 python blogger/theme/verify_applied.py                # theme live? widgets rendering? SEO tags? (reads the public page)
 python blogger/images/optimize_images.py check        # image rules
 python blogger/tests/smoke_live.py --run              # live write path (writes 1 throwaway draft)
 ```
+
+Two theme files ship, and the difference between them is the experiment (see
+`tests/RESULTS.md` §9): `owners-handbook-v1.xml` is what the blog serves today;
+`owners-handbook-v2-decl.xml` is v1 with the widget/section **declarations** modernised
+(`b:defaultwidgetversion='2'`, widgets `version='2' visible='true'`, named sections).
+`decl_variant.py` derives the second from the first — never edit it by hand — and a test
+proves that stripping the declaration attributes from both files yields identical text.
+`verify_theme.py` validates each file separately (any number of paths may be given).
 
 `test_pipeline.py` never touches the network or the credentials, so it runs anywhere.
 `smoke_live.py` is the opposite: it is the only script that talks to Blogger, needs an

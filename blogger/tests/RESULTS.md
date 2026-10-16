@@ -8,8 +8,9 @@ keep working on any machine.
 
 | # | Check | Command | Result |
 | --- | --- | --- | --- |
-| 1 | Theme XML validator | `python blogger/theme/verify_theme.py` | **all 39 checks passed** |
-| 2 | Pipeline test suite | `python blogger/tests/test_pipeline.py` | **43 tests, OK** (0.5 s) |
+| 1 | Theme XML validator (v1) | `python blogger/theme/verify_theme.py blogger/theme/owners-handbook-v1.xml` | **all 45 checks passed** |
+| 1b | Theme XML validator (declaration variant) | `python blogger/theme/verify_theme.py blogger/theme/owners-handbook-v2-decl.xml` | **all 49 checks passed** |
+| 2 | Pipeline test suite | `python blogger/tests/test_pipeline.py` | **61 tests, OK** (0.8 s) |
 | 3 | Live-head comparison | `python blogger/theme/compare_live.py` | **matches the theme's assumptions** |
 | 4 | Image rules audit | `python blogger/images/optimize_images.py check` | **4/4 files pass** |
 | 5 | Draft dry-run, no credentials | `python blogger/publish.py create content/posts/example-guide.md --dry-run --assets-base …` | payload built, exit 0 |
@@ -254,12 +255,76 @@ re-paste step demoted to "only if `[1b]` says the served page is stale".
 Also recorded: the blog's own locale is `ko` (Blogger settings → language, owner-side), which
 is where the Korean UI strings in `?m=1` came from while the stock template served it.
 
+## 9. Declaration-generation variant, and the checks that keep it honest — 2026-10-17
+
+Chief of staff asked for the "modernise the widget declarations" fix as the first-path
+experiment (`ownerhandbook-v2-decl`), with v1 kept untouched as the rollback. Delivered,
+plus the offline checks that make the experiment falsifiable.
+
+### The evidence behind the hypothesis (reproduced here, not taken on report)
+
+```
+curl -s https://ownerhandbook.blogspot.com/ | grep -c _RegisterWidget      -> 7
+curl -s https://ownerhandbook.blogspot.com/ | grep -c "no-items section"   -> 5
+curl -s https://ownerhandbook.blogspot.com/ | grep -ci "id='Label1'|id='Label2'" -> 0
+grep -c "class='widget"                                                    -> 0
+```
+
+The 7 registrations are `Header1`(header), `BlogSearch1`(nav), `PageList1`(nav),
+`Blog1`(main-posts), `HTML1`(sidebar), `PageList2`(footer), `HTML2`(footer) — and the
+served `<html>` element carries `class='v2'` but no `b:version`/`b:responsive` (those are
+compile-time). So the layout holds **6 instances for 5 declared sections plus one extra
+(`BlogSearch1`)**, while the theme declares **8 widgets**: `Label1` and `Label2` have no
+instance, `BlogSearch1` has no declaration. Blogger renders neither the extras nor the
+declared-but-uninstantiated ones, and it renders nothing at all for the sections it does
+have instances for.
+
+### What shipped
+
+| File | What it is |
+| --- | --- |
+| `blogger/theme/owners-handbook-v2-decl.xml` | v1 **with declarations only** changed: `<html b:defaultwidgetversion='2'>`, all 8 widgets `version='2' visible='true'`, all 5 sections `name='Header/Navigation/Posts/Sidebar/Footer'`. `b:layoutsVersion='3'` deliberately **not** added (v3-only token; these data tags are v2-model). |
+| `blogger/theme/decl_variant.py` | The generator. Text-level attribute edits (no re-serialisation), so CSS, includables, data tags, ad slots and widget settings cannot drift. `--check` fails if the committed variant is stale. |
+
+The full `diff` between v1 and the variant is 8 hunks: one `<html>` line, five section
+lines, and each widget's own line. A test asserts the two files are byte-identical after
+**stripping the declaration attributes**, so "declarations only" is enforced, not asserted
+in prose.
+
+### New validator checks `[2c]` and the honest limit of them
+
+`verify_theme.py` gained a `[2c]` block: one uniform widget version token, no
+`b:layoutsVersion='3'`, `visible=` a real boolean wherever it appears — plus, **when the
+file declares `b:defaultwidgetversion='2'`**, that the widgets match it, every widget
+carries an explicit `visible=`, and every section carries a unique Layout name. v1
+**45 checks**, variant **49 checks**, both exit 0. Offline checks cannot prove Blogger
+will render the widgets; what they can do is make sure the variant is exactly the
+declared experiment and nothing more.
+
+### Suite
+
+`python blogger/tests/test_pipeline.py` → **61 tests, OK** (53 + 8): the derivation
+proof, the variant's validator run, v1 not regressing under the new checks, three
+negative cases (mixed widget generations, a v3 layout token, a generation-2 section
+without a name), the guide-drift guard, and the `--check` mode.
+
+### Observations recorded, not yet acted on
+
+- `BlogSearch1` is a residual layout instance the theme does not declare, sitting in the
+  `nav` section (`maxwidgets='2'`, layout holds PageList1 + BlogSearch1 + the
+  uninstantiated Label1). If widgets start rendering, that box needs deleting in
+  Layout; the upload guide now says so.
+- `Label1`/`Label2` still have no instance. If they never appear, the fallback is adding
+  the label widgets directly under Layout.
+
 ## Not yet verified (waiting on the owner)
 
 1. ~~Blogger theme upload~~ — **applied and verified** (section 6), the served copy is the
    current file (section 8, check `[1b]`), and the mobile slot is on the theme (check `[6]`).
-   What is still open is the widget rendering itself (sections 7–8): the next owner step is
-   one Layout save, then the B0 baseline paste, per `blogger/theme/bisect/PLAN.md`.
+   What is still open is the widget rendering itself (sections 7–9). The owner's next steps,
+   in order: **one Layout save → apply `owners-handbook-v2-decl.xml` (upload, or the manual
+   paste) → `bisect/B0-baseline.xml` if it is still empty**; `verify_applied.py` judges each
+   step (exit 0 = done).
 2. **Publishing anything public** — deliberately out of scope until the owner reviews
    a draft; the tool refuses without `--confirm-owner-approved`, and the live smoke test
    verified that refusal on the real API.

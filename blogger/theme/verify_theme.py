@@ -10,6 +10,10 @@ uploads the file:
   3. Exactly one Blog widget exists, and every <b:include name='x'/> inside a
      widget resolves to an includable that the same widget defines (a dangling
      include is the #1 cause of an upload rejection).
+  2c. The widget/section *declaration generation* is internally consistent: one
+     uniform widget version, no v3 layout token, and — when the theme targets
+     widget generation 2 — explicit visible= on every widget and a Layout name
+     on every section.
   4. Only data tags from the classic Layouts v2 model are used — v3-only tags
      are rejected here instead of by Blogger's validator.
   5. Section/widget ids are unique and well formed; widgets live in sections.
@@ -114,6 +118,11 @@ def check(condition: bool, label: str, detail: str = "") -> bool:
 
 
 def main(path: str) -> int:
+    global checks_run
+    # main() may be called once per file in a single process (npm run theme:check
+    # validates both theme generations), so per-file counters are reset here.
+    failures.clear()
+    checks_run = 0
     with open(path, encoding="utf-8") as fh:
         raw = fh.read()
     print(f"Theme: {path} ({len(raw)} bytes)\n")
@@ -151,6 +160,41 @@ def main(path: str) -> int:
           "<html> declares class='v2' (Blogger's layouts-v2 hook)")
     check(re.search(r"<html[^>]*\sb:responsive='true'", raw) is not None,
           "<html> declares b:responsive='true' (mobile uses this theme, not the fallback)")
+
+    print("\n[2c] Widget/section declaration generation")
+    # Two themes ship in this repo: owners-handbook-v1.xml (what the blog serves today) and
+    # owners-handbook-v2-decl.xml (v1 with the declaration generation modernised — see
+    # decl_variant.py). The invariants below hold for either, and they fire on the variant:
+    # a mixed-generation file is exactly the state that produced the live render skip.
+    decl_widgets = list(root.iter(f"{B}widget"))
+    decl_sections = list(root.iter(f"{B}section"))
+    generation = root.get(f"{B}defaultwidgetversion")
+    generation_label = generation or "implicit (widget version='1')"
+    print(f"        declared widget generation: {generation_label}"
+          f" | {len(decl_widgets)} widget(s), {len(decl_sections)} section(s)")
+    widget_versions = sorted({(w.get("version") or "") for w in decl_widgets})
+    check(len(widget_versions) == 1 and widget_versions[0] in ("1", "2"),
+          "every widget declares one uniform, valid version token", str(widget_versions))
+    check(root.get(f"{B}layoutsVersion") is None,
+          "no b:layoutsVersion='3' (these data tags are written for the v2 model)",
+          str(root.get(f"{B}layoutsVersion")))
+    visible_values = [w.get("visible") for w in decl_widgets if w.get("visible") is not None]
+    check(set(visible_values) <= {"true", "false"},
+          "visible= is a real boolean wherever it appears", str(set(visible_values)))
+    if generation == "2":
+        check(widget_versions == ["2"],
+              "b:defaultwidgetversion='2' matches the widgets' declared version",
+              str(widget_versions))
+        check(len(visible_values) == len(decl_widgets)
+              and set(visible_values) <= {"true", "false"},
+              "generation-2 widgets declare visible= explicitly",
+              str([w.get("id") for w in decl_widgets if w.get("visible") is None]))
+        check(set(visible_values) == {"true"},
+              "generation-2 widgets of this theme are all visible='true'",
+              str(sorted(set(visible_values))))
+        section_names = [s.get("name") for s in decl_sections]
+        check(all(section_names) and len(set(section_names)) == len(section_names),
+              "generation-2 sections carry unique Layout names", str(section_names))
 
     print("\n[3] Widgets, sections and includables")
     widgets = list(root.iter(f"{B}widget"))
@@ -253,5 +297,10 @@ def main(path: str) -> int:
 
 
 if __name__ == "__main__":
-    target = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_THEME
-    sys.exit(main(target))
+    targets = sys.argv[1:] or [DEFAULT_THEME]
+    worst = 0
+    for target in targets:
+        if len(targets) > 1:
+            print("=" * 70)
+        worst = max(worst, main(target))
+    sys.exit(worst)

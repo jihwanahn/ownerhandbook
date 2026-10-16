@@ -1,0 +1,622 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<!--
+  The Owner's Handbook — lightweight Blogger theme v1
+  ==================================================================
+  Design goals (JHL-4 §1): mobile-first, no external JS and no web
+  fonts (system font stack only), long-form readability, <figure>
+  styling, lazy images, AdSense-ready empty containers, Article
+  structured data that does not fight Blogger's own head output.
+
+  Head policy: <b:include data='blog' name='all-head-content'/> is the
+  single source for canonical, meta description, favicon, feed links and
+  the og:url / og:title / og:description tags. This theme only adds the
+  tags Blogger does not emit (title, og:type, og:image, twitter card,
+  JSON-LD) so nothing is duplicated.
+
+  Widget/includable style is classic Layouts v2 (data tags verified
+  against an uploaded production theme) so Blogger's theme validator
+  accepts it. Do not introduce v3-only data tags here.
+
+  Editors: keep <title> tags free of double quotes — titles are injected
+  into the JSON-LD block on item pages.
+-->
+<!-- Widget/includable style is classic Layouts v2 (data tags verified
+  against an uploaded production theme) so Blogger's theme validator
+  accepts it. Do not introduce v3-only data tags here.
+
+  The <html> element below must carry the Layouts v2 declarations
+  (b:version='2', class='v2', b:responsive='true'). Every theme Blogger
+  renders widgets for has them, including the stock template still served
+  on ?m=1 of this blog; the widget declarations alone are not enough.
+-->
+<html b:version='2' b:defaultwidgetversion='2' b:responsive='true' class='v2' expr:dir='data:blog.languageDirection' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <b:include data='blog' name='all-head-content'/>
+  <!-- Title: Blogger's own tag first, then the theme's title (all-head-content does not emit <title>). -->
+  <title><b:if cond='data:blog.pageType == &quot;index&quot;'><data:blog.title/><b:else/><data:blog.pageName/> | <data:blog.title/></b:if></title>
+  <meta content='width=device-width, initial-scale=1' name='viewport'/>
+  <meta content='#ffffff' name='theme-color'/>
+  <!-- og:type / og:image / twitter card: not emitted by all-head-content. -->
+  <b:if cond='data:blog.pageType == &quot;item&quot;'>
+    <meta content='article' property='og:type'/>
+  <b:else/>
+    <meta content='website' property='og:type'/>
+  </b:if>
+  <b:if cond='data:blog.postImageThumbnailUrl != &quot;&quot;'>
+    <meta expr:content='data:blog.postImageThumbnailUrl' property='og:image'/>
+    <meta expr:content='data:blog.postImageThumbnailUrl' name='twitter:image'/>
+  <b:else/>
+    <!-- Fallback social image: the blog's own favicon, derived from data:blog.homepageUrl so
+         no host or site name is hard-coded here — after a custom-domain switch this keeps
+         pointing at the right place with no edit. Swap in a real 1200x630 share image once
+         the asset host is connected (blogger/images/IMAGE-RULES.md, Phase 2). -->
+    <meta expr:content='data:blog.homepageUrl + &quot;favicon.ico&quot;' property='og:image'/>
+  </b:if>
+  <meta content='summary_large_image' name='twitter:card'/>
+  <!-- Blogger emits <meta name='description'> only when a search description exists
+       (verified against the live blogspot HTML). Fall back to the post snippet so every
+       guide ships a description out of the box; a search description typed into the
+       Blogger editor's "Search Description" field always wins (condition below). -->
+  <b:if cond='data:blog.pageType == &quot;item&quot;'>
+    <b:if cond='data:blog.metaDescription == &quot;&quot;'>
+      <meta expr:content='data:post.snippet' name='description'/>
+    </b:if>
+  </b:if>
+  <!-- Favicon: Blogger emits it via all-head-content (Settings -> Basics -> Favicon).
+       If you ever need a hand-managed icon instead, uncomment and point it at your asset:
+       <link href='https://example.com/favicon-192.png' rel='icon' sizes='192x192'/> -->
+
+  <!-- Structured data: WebSite + Organization on the homepage ... -->
+  <b:if cond='data:blog.pageType == &quot;index&quot;'>
+    <script type='application/ld+json'>
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "<data:blog.title/>",
+      "url": "<data:blog.homepageUrl/>",
+      "publisher": {
+        "@type": "Organization",
+        "name": "<data:blog.title/>",
+        "url": "<data:blog.homepageUrl/>"
+      }
+    }
+    </script>
+  </b:if>
+  <!-- ... and BlogPosting on guides. -->
+  <b:if cond='data:blog.pageType == &quot;item&quot;'>
+    <script type='application/ld+json'>
+    {
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      "mainEntityOfPage": {
+        "@type": "WebPage",
+        "@id": "<data:blog.url/>"
+      },
+      "headline": "<data:post.title/>",
+      "datePublished": "<data:post.timestampISO8601/>",
+      "dateModified": "<data:post.lastUpdatedISO8601/>",
+      "author": {
+        "@type": "Organization",
+        "name": "<data:blog.title/>"
+      },
+      "publisher": {
+        "@type": "Organization",
+        "name": "<data:blog.title/>"
+      },
+      <b:if cond='data:blog.metaDescription != &quot;&quot;'>
+      "description": "<data:blog.metaDescription/>",
+      </b:if>
+      <b:if cond='data:blog.postImageThumbnailUrl != &quot;&quot;'>
+      "image": "<data:blog.postImageThumbnailUrl/>",
+      </b:if>
+      "keywords": "<b:loop values='data:post.labels' var='label'><data:label.name/><b:if cond='data:label.isLast != &quot;true&quot;'>, </b:if></b:loop>"
+    }
+    </script>
+  </b:if>
+
+  <b:skin><![CDATA[/*
+------------------------------------------------------------
+Theme: The Owner's Handbook v1 (lightweight)
+Designer: JH Labs — SEO Engineer
+------------------------------------------------------------
+*/
+/*
+<Variable name="keycolor" description="Main accent color" type="color" default="#14532d" value="#14532d"/>
+<Variable name="body.text.color" description="Body text" type="color" default="#1f2328" value="#1f2328"/>
+<Variable name="body.background.color" description="Page background" type="color" default="#ffffff" value="#ffffff"/>
+<Variable name="body.link.color" description="Link color" type="color" default="#14532d" value="#14532d"/>
+*/
+
+/* ---------- Reset + tokens ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+:root {
+  --ink: $(body.text.color);
+  --ink-soft: #5b6470;
+  --line: #e4e7eb;
+  --bg: $(body.background.color);
+  --bg-soft: #f7f8fa;
+  --accent: $(body.link.color);
+  --measure: 42rem;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e8eaed;
+    --ink-soft: #a5adb8;
+    --line: #2b3038;
+    --bg: #14171c;
+    --bg-soft: #1b1f26;
+    --accent: #6fcf97;
+  }
+}
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 400 17px/1.7 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  text-rendering: optimizeLegibility;
+}
+img, svg, video { max-width: 100%; height: auto; }
+a { color: var(--accent); text-underline-offset: .18em; }
+a:hover { text-decoration-thickness: 2px; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Layout ---------- */
+.wrap { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 1rem; }
+.skip-link { position: absolute; left: -9999px; }
+.skip-link:focus { left: 1rem; top: .5rem; position: fixed; background: var(--bg); padding: .5rem .75rem; z-index: 50; }
+
+/* ---------- Header ---------- */
+.site-header { border-bottom: 1px solid var(--line); background: var(--bg); }
+.site-header-inner { padding: 1.1rem 0 .75rem; }
+.site-title { margin: 0; font-size: 1.4rem; line-height: 1.25; letter-spacing: -.01em; font-weight: 700; }
+.site-title a { color: var(--ink); text-decoration: none; }
+.site-description { margin: .35rem 0 0; color: var(--ink-soft); font-size: .95rem; }
+.site-nav { border-bottom: 1px solid var(--line); background: var(--bg-soft); }
+.site-nav ul { display: flex; flex-wrap: wrap; gap: .25rem 1.1rem; margin: 0; padding: .55rem 0; list-style: none; font-size: .95rem; }
+.site-nav a { color: var(--ink); text-decoration: none; }
+.site-nav a:hover { color: var(--accent); text-decoration: underline; }
+.site-nav .widget-title { display: none; }
+.label-nav ul { font-size: .9rem; }
+
+/* ---------- Columns ---------- */
+.layout { display: block; padding: 1.5rem 0 3rem; }
+.main-col { min-width: 0; }
+.sidebar { margin-top: 2.5rem; font-size: .95rem; }
+@media (min-width: 62rem) {
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 3rem; align-items: start; }
+  .sidebar { margin-top: 0; position: sticky; top: 1rem; }
+}
+
+/* ---------- Post cards (list pages) ---------- */
+.blog-posts { display: block; }
+.post-card { border-bottom: 1px solid var(--line); padding: 1.5rem 0; }
+.post-card:first-child { padding-top: 0; }
+.post-card-title { margin: 0 0 .3rem; font-size: 1.35rem; line-height: 1.3; }
+.post-card-title a { color: var(--ink); text-decoration: none; }
+.post-card-title a:hover { color: var(--accent); }
+.post-card-snippet { margin: .35rem 0 .6rem; color: var(--ink-soft); }
+.post-card-snippet p { margin: 0; }
+.post-meta { margin: 0 0 .5rem; color: var(--ink-soft); font-size: .85rem; }
+.post-meta time { font-variant-numeric: tabular-nums; }
+.read-more { font-size: .9rem; font-weight: 600; }
+
+/* ---------- Single guide ---------- */
+.post { max-width: var(--measure); }
+.post-header { margin-bottom: 1rem; }
+.post-title { margin: 0 0 .4rem; font-size: clamp(1.6rem, 1.2rem + 2vw, 2.15rem); line-height: 1.22; letter-spacing: -.015em; }
+.post-body { font-size: 1.06rem; }
+.post-body > * + * { margin-top: 1.1em; }
+.post-body h2 { margin-top: 2.2em; font-size: 1.45rem; line-height: 1.3; padding-bottom: .3rem; border-bottom: 2px solid var(--line); }
+.post-body h3 { margin-top: 1.8em; font-size: 1.18rem; }
+.post-body h4 { margin-top: 1.5em; font-size: 1.04rem; }
+.post-body ul, .post-body ol { padding-left: 1.3rem; }
+.post-body li + li { margin-top: .35em; }
+.post-body blockquote {
+  margin: 1.6em 0; padding: .2em 1.1em; border-left: 4px solid var(--accent);
+  background: var(--bg-soft); color: var(--ink-soft); font-style: italic;
+}
+.post-body blockquote p { margin: .7em 0; }
+.post-body code {
+  background: var(--bg-soft); border: 1px solid var(--line); border-radius: 4px;
+  padding: .1em .35em; font-size: .9em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+.post-body pre {
+  overflow-x: auto; padding: 1rem 1.1rem; background: var(--bg-soft);
+  border: 1px solid var(--line); border-radius: 8px; font-size: .9rem; line-height: 1.55;
+}
+.post-body pre code { background: none; border: 0; padding: 0; font-size: 1em; }
+.post-body table {
+  width: 100%; border-collapse: collapse; font-size: .95rem; display: block; overflow-x: auto;
+}
+.post-body th, .post-body td { border: 1px solid var(--line); padding: .55rem .7rem; text-align: left; vertical-align: top; }
+.post-body th { background: var(--bg-soft); font-weight: 600; }
+.post-body hr { border: 0; border-top: 1px solid var(--line); margin: 2.2em 0; }
+.post-body figure { margin: 1.8em 0; }
+.post-body figure img { display: block; margin: 0 auto; border: 1px solid var(--line); border-radius: 8px; }
+.post-body figcaption { margin-top: .55rem; color: var(--ink-soft); font-size: .88rem; text-align: left; }
+.post-labels { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--line); font-size: .9rem; color: var(--ink-soft); }
+.post-labels a { margin-right: .75rem; }
+
+/* ---------- Ads (empty until Phase 3) ---------- */
+.ad-slot { margin: 1.5rem 0; text-align: center; }
+.ad-slot:empty { margin: 0; }
+.ad-in-article { margin: 2rem 0; }
+.ad-bottom { margin-top: 2rem; }
+
+/* ---------- Sidebar widgets ---------- */
+.widget { margin-bottom: 2rem; }
+.widget-title { margin: 0 0 .6rem; font-size: .8rem; text-transform: uppercase; letter-spacing: .08em; color: var(--ink-soft); }
+.widget ul { list-style: none; margin: 0; padding: 0; }
+.widget li { padding: .3rem 0; border-bottom: 1px solid var(--line); }
+.widget li:last-child { border-bottom: 0; }
+.widget a { color: var(--ink); text-decoration: none; }
+.widget a:hover { color: var(--accent); text-decoration: underline; }
+.label-count { color: var(--ink-soft); font-size: .85em; }
+
+/* ---------- Pager ---------- */
+.blog-pager { display: flex; justify-content: space-between; gap: 1rem; margin: 2rem 0 0; font-weight: 600; }
+.blog-pager a { text-decoration: none; }
+
+/* ---------- Comments ---------- */
+.comments { max-width: var(--measure); margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.comments-title { font-size: 1.1rem; }
+.comment-list { margin: 0; }
+.comment-author { font-weight: 600; margin-top: 1.2rem; }
+.comment-date { color: var(--ink-soft); font-weight: 400; font-size: .85rem; margin-left: .5rem; }
+.comment-body { margin: .35rem 0 0; }
+.comment-form iframe { margin-top: .75rem; border: 1px solid var(--line); border-radius: 8px; }
+
+/* ---------- Footer ---------- */
+.site-footer { border-top: 1px solid var(--line); background: var(--bg-soft); margin-top: 2rem; }
+.site-footer-inner { padding: 1.5rem 0 2.5rem; font-size: .9rem; color: var(--ink-soft); }
+.site-footer .widget-title { display: none; }
+.site-footer ul { display: flex; flex-wrap: wrap; gap: .4rem 1.2rem; list-style: none; margin: 0 0 .6rem; padding: 0; }
+.site-footer a { color: var(--ink-soft); }
+
+/* ---------- Blogger chrome we do not want ---------- */
+.navbar, #navbar-iframe, .Attribution, #b-navbar { display: none !important; height: 0 !important; }
+
+/* ---------- Utility ---------- */
+.clear { clear: both; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media print { .site-nav, .sidebar, .ad-slot, .comments { display: none; } }
+]]></b:skin>
+</head>
+
+<body>
+<a class='skip-link' href='#main'>Skip to content</a>
+
+<header class='site-header' role='banner'>
+  <div class='wrap site-header-inner'>
+    <b:section class='site-brand' id='header' maxwidgets='1' showaddelement='no' name='Header'>
+      <b:widget id='Header1' locked='false' title='The Owner&#39;s Handbook' type='Header' version='2' visible='true'>
+        <b:includable id='main'>
+          <b:if cond='data:blog.url == data:blog.homepageUrl'>
+            <h1 class='site-title'><a expr:href='data:blog.homepageUrl'><data:title/></a></h1>
+          <b:else/>
+            <p class='site-title'><a expr:href='data:blog.homepageUrl'><data:title/></a></p>
+          </b:if>
+          <b:if cond='data:description != &quot;&quot;'>
+            <p class='site-description'><data:description/></p>
+          </b:if>
+        </b:includable>
+      </b:widget>
+    </b:section>
+  </div>
+</header>
+
+<nav class='site-nav' role='navigation'>
+  <div class='wrap site-nav-inner'>
+    <b:section class='nav-pages' id='nav' maxwidgets='2' showaddelement='yes' name='Navigation'>
+      <b:widget id='PageList1' locked='false' title='Pages' type='PageList' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='homeTitle'>Home</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <ul class='page-list'>
+            <b:loop values='data:links' var='link'>
+              <li><a expr:href='data:link.href'><data:link.title/></a></li>
+            </b:loop>
+          </ul>
+        </b:includable>
+      </b:widget>
+      <b:widget id='Label1' locked='false' title='Categories' type='Label' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='sorting'>ALPHA</b:widget-setting>
+          <b:widget-setting name='display'>LIST</b:widget-setting>
+          <b:widget-setting name='selectedLabelsList'></b:widget-setting>
+          <b:widget-setting name='showType'>ALL</b:widget-setting>
+          <b:widget-setting name='showFreqNumbers'>false</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <div class='widget-content label-nav'>
+            <ul class='label-list'>
+              <b:loop values='data:labels' var='label'>
+                <li><a expr:href='data:label.url'><data:label.name/></a></li>
+              </b:loop>
+            </ul>
+          </div>
+        </b:includable>
+      </b:widget>
+    </b:section>
+  </div>
+</nav>
+
+<div class='wrap layout'>
+  <main class='main-col' id='main' role='main'>
+    <!-- ==========================================================
+         AdSense slot 1 of 3 — TOP (above the post list / guide body).
+         Phase 3: paste the AdSense "display" code inside this div and
+         update its class only if you want to override spacing.
+         ========================================================== -->
+    <div class='ad-slot ad-top' id='ad-top'>
+      <!-- ADSENSE-TOP: intentionally empty until AdSense is approved -->
+    </div>
+
+    <b:section class='main-posts' id='main-posts' maxwidgets='1' showaddelement='no' name='Posts'>
+      <b:widget id='Blog1' locked='true' title='Posts' type='Blog' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='showDateHeader'>true</b:widget-setting>
+          <b:widget-setting name='showShareButtons'>false</b:widget-setting>
+          <b:widget-setting name='showAuthor'>false</b:widget-setting>
+          <b:widget-setting name='showLabels'>true</b:widget-setting>
+          <b:widget-setting name='showBacklinks'>false</b:widget-setting>
+          <b:widget-setting name='showCommentLink'>true</b:widget-setting>
+          <b:widget-setting name='showReactions'>false</b:widget-setting>
+          <b:widget-setting name='showInlineAds'>false</b:widget-setting>
+          <b:widget-setting name='showLocation'>false</b:widget-setting>
+          <b:widget-setting name='style.unittype'>TextAndImage</b:widget-setting>
+          <b:widget-setting name='style.layout'>1x1</b:widget-setting>
+          <b:widget-setting name='timestampLabel'>at</b:widget-setting>
+          <b:widget-setting name='authorLabel'>By</b:widget-setting>
+          <b:widget-setting name='commentLabel'>comments</b:widget-setting>
+          <b:widget-setting name='postLabelsLabel'>Filed under:</b:widget-setting>
+        </b:widget-settings>
+
+        <b:includable id='main' var='top'>
+          <div class='blog-posts hfeed'>
+            <b:loop values='data:posts' var='post'>
+              <b:include data='post' name='post'/>
+            </b:loop>
+          </div>
+          <b:include name='nextprev'/>
+        </b:includable>
+
+        <b:includable id='post' var='post'>
+          <b:if cond='data:blog.pageType == &quot;index&quot;'>
+            <!-- ========== Listing: title + search snippet, no body ========== -->
+            <article class='post-card hentry'>
+              <b:if cond='data:post.title'>
+                <h2 class='post-card-title entry-title'><a expr:href='data:post.url' rel='bookmark'><data:post.title/></a></h2>
+              </b:if>
+              <p class='post-meta'>
+                <time expr:datetime='data:post.timestampISO8601'><data:post.timestamp/></time>
+                <b:if cond='data:post.labels'>
+                  <span class='meta-sep'> &#183; </span>
+                  <b:loop values='data:post.labels' var='label'>
+                    <a class='post-card-label' expr:href='data:label.url' rel='tag'><data:label.name/></a><b:if cond='data:label.isLast != &quot;true&quot;'>, </b:if>
+                  </b:loop>
+                </b:if>
+              </p>
+              <div class='post-card-snippet entry-summary'><data:post.snippet/></div>
+              <p class='read-more'><a expr:href='data:post.url'>Read the guide &#8594;</a></p>
+            </article>
+          <b:else/>
+            <!-- ========== Item (post) and static_page (About/Contact/Privacy) ========== -->
+            <article class='post hentry' expr:id='&quot;post-&quot; + data:post.id'>
+              <a expr:name='data:post.id'></a>
+              <header class='post-header'>
+                <h1 class='post-title entry-title'><data:post.title/></h1>
+                <b:if cond='data:blog.pageType == &quot;item&quot;'>
+                  <p class='post-meta'>
+                    <time expr:datetime='data:post.timestampISO8601'><data:post.timestamp/></time>
+                    <b:if cond='data:post.author'>
+                      <span class='meta-sep'> &#183; </span><span class='author'><data:post.author/></span>
+                    </b:if>
+                  </p>
+                </b:if>
+              </header>
+
+              <div class='post-body entry-content' expr:id='&quot;post-body-&quot; + data:post.id'>
+                <data:post.body/>
+                <div class='clear'></div>
+              </div>
+
+              <!-- ==========================================================
+                   AdSense slot 2 of 3 — IN-ARTICLE (after the guide body).
+                   Options for the middle of the article in Phase 3:
+                     a) AdSense -> Ads -> In-article ads (Auto ads) — no code needed
+                     b) paste a display unit inside this div
+                   ========================================================== -->
+              <div class='ad-slot ad-in-article' id='ad-in-article'>
+                <!-- ADSENSE-IN-ARTICLE: intentionally empty until AdSense is approved -->
+              </div>
+
+              <b:if cond='data:post.labels'>
+                <p class='post-labels'><data:postLabelsLabel/>
+                  <b:loop values='data:post.labels' var='label'>
+                    <a expr:href='data:label.url' rel='tag'><data:label.name/></a>
+                  </b:loop>
+                </p>
+              </b:if>
+            </article>
+
+            <b:if cond='data:blog.pageType == &quot;item&quot;'>
+              <b:if cond='data:post.allowComments'>
+                <b:include data='post' name='comments'/>
+              </b:if>
+            </b:if>
+          </b:if>
+        </b:includable>
+
+        <b:includable id='nextprev'>
+          <div class='blog-pager' id='blog-pager'>
+            <b:if cond='data:newerPageUrl'>
+              <span id='blog-pager-newer-link'>
+                <a class='blog-pager-newer-link' expr:href='data:newerPageUrl' expr:title='data:newerPageTitle'>&#8592; <data:newerPageTitle/></a>
+              </span>
+            </b:if>
+            <b:if cond='data:olderPageUrl'>
+              <span id='blog-pager-older-link'>
+                <a class='blog-pager-older-link' expr:href='data:olderPageUrl' expr:title='data:olderPageTitle'><data:olderPageTitle/> &#8594;</a>
+              </span>
+            </b:if>
+            <b:if cond='data:blog.homepageUrl != data:blog.url'>
+              <a class='home-link' expr:href='data:blog.homepageUrl'>All guides</a>
+            </b:if>
+          </div>
+          <div class='clear'></div>
+        </b:includable>
+
+        <b:includable id='comments' var='post'>
+          <div class='comments' id='comments'>
+            <a name='comments'></a>
+            <h2 class='comments-title'>Comments
+              <b:if cond='data:post.numComments != 0'>
+                <span class='comment-count'>(<data:post.numComments/>)</span>
+              </b:if>
+            </h2>
+            <b:if cond='data:post.numComments == 0'>
+              <p class='no-comments'>No comments yet. Corrections and questions are welcome.</p>
+            <b:else/>
+              <dl class='comment-list' expr:id='&quot;comments-block-&quot; + data:post.id'>
+                <b:loop values='data:post.comments' var='comment'>
+                  <dt class='comment-author' expr:id='data:comment.anchorName'>
+                    <b:if cond='data:comment.authorUrl'>
+                      <a expr:href='data:comment.authorUrl' rel='nofollow'><data:comment.author/></a>
+                    <b:else/>
+                      <data:comment.author/>
+                    </b:if>
+                    <span class='comment-date'><data:comment.timestamp/></span>
+                  </dt>
+                  <dd class='comment-body'><data:comment.body/></dd>
+                </b:loop>
+              </dl>
+            </b:if>
+            <p class='comment-footer'>
+              <b:if cond='data:post.embedCommentForm'>
+                <b:include data='post' name='comment-form'/>
+              <b:else/>
+                <b:if cond='data:post.allowComments'>
+                  <a expr:href='data:post.addCommentUrl' expr:onclick='data:post.addCommentOnclick'>Post a comment</a>
+                </b:if>
+              </b:if>
+            </p>
+          </div>
+        </b:includable>
+
+        <b:includable id='comment-form' var='post'>
+          <div class='comment-form'>
+            <a name='comment-form'></a>
+            <h3 id='comment-post-message'><data:postCommentMsg/></h3>
+            <p><data:blogCommentMessage/></p>
+            <data:blogTeamBlogMessage/>
+            <a expr:href='data:post.commentFormIframeSrc' id='comment-editor-src'></a>
+            <iframe allowtransparency='true' class='blogger-iframe-colorize blogger-comment-from-post' frameborder='0' height='410' id='comment-editor' name='comment-editor' src='' width='100%'></iframe>
+            <data:post.cmtfpIframe/>
+            <script type='text/javascript'>
+              BLOG_CMT_createIframe(&#39;<data:post.appRpcRelayPath/>&#39;);
+            </script>
+          </div>
+        </b:includable>
+      </b:widget>
+    </b:section>
+
+    <!-- ==========================================================
+         AdSense slot 3 of 3 — BOTTOM (below the guide, above the footer).
+         ========================================================== -->
+    <div class='ad-slot ad-bottom' id='ad-bottom'>
+      <!-- ADSENSE-BOTTOM: intentionally empty until AdSense is approved -->
+    </div>
+  </main>
+
+  <aside class='sidebar' role='complementary'>
+    <b:section class='sidebar-widgets' id='sidebar' maxwidgets='4' showaddelement='yes' name='Sidebar'>
+      <b:widget id='HTML1' locked='false' title='About this site' type='HTML' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='content'>Step-by-step guides for starting and running a small business in the United States. Every guide cites primary sources: state agencies, the SBA, the IRS and published vendor pricing.</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <div class='widget-content'>
+            <b:if cond='data:title != &quot;&quot;'>
+              <p class='widget-title'><data:title/></p>
+            </b:if>
+            <data:content/>
+          </div>
+        </b:includable>
+      </b:widget>
+      <b:widget id='Label2' locked='false' title='Browse by category' type='Label' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='sorting'>ALPHA</b:widget-setting>
+          <b:widget-setting name='display'>LIST</b:widget-setting>
+          <b:widget-setting name='selectedLabelsList'></b:widget-setting>
+          <b:widget-setting name='showType'>ALL</b:widget-setting>
+          <b:widget-setting name='showFreqNumbers'>true</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <div class='widget-content'>
+            <b:if cond='data:title != &quot;&quot;'>
+              <p class='widget-title'><data:title/></p>
+            </b:if>
+            <ul class='label-list'>
+              <b:loop values='data:labels' var='label'>
+                <li><a expr:href='data:label.url'><data:label.name/></a><b:if cond='data:showFreqNumbers'> <span class='label-count'>(<data:label.count/>)</span></b:if></li>
+              </b:loop>
+            </ul>
+          </div>
+        </b:includable>
+      </b:widget>
+    </b:section>
+  </aside>
+</div>
+
+<footer class='site-footer' role='contentinfo'>
+  <div class='wrap site-footer-inner'>
+    <b:section class='footer-widgets' id='footer' maxwidgets='3' showaddelement='yes' name='Footer'>
+      <b:widget id='PageList2' locked='false' title='Pages' type='PageList' version='2' visible='true'>
+        <b:includable id='main'>
+          <ul class='page-list'>
+            <b:loop values='data:links' var='link'>
+              <li><a expr:href='data:link.href'><data:link.title/></a></li>
+            </b:loop>
+          </ul>
+        </b:includable>
+      </b:widget>
+      <b:widget id='HTML2' locked='false' title='' type='HTML' version='2' visible='true'>
+        <b:widget-settings>
+          <b:widget-setting name='content'>Independent publication. Not legal, tax or accounting advice.</b:widget-setting>
+        </b:widget-settings>
+        <b:includable id='main'>
+          <div class='widget-content'>
+            <b:if cond='data:title != &quot;&quot;'>
+              <p class='widget-title'><data:title/></p>
+            </b:if>
+            <data:content/>
+            <p class='copyright'>&#169; <data:blog.title/>. All rights reserved.</p>
+          </div>
+        </b:includable>
+      </b:widget>
+    </b:section>
+  </div>
+</footer>
+
+<!-- Progressive enhancement only: no external JS is loaded. Images authored through
+     blogger/md2blogger.py already carry loading="lazy" + decoding="async"; this covers
+     images pasted directly into the Blogger editor. -->
+<script>
+//<![CDATA[
+(function () {
+  var imgs = document.querySelectorAll('.post-body img');
+  for (var i = 0; i < imgs.length; i++) {
+    var img = imgs[i];
+    if (!img.hasAttribute('loading')) img.setAttribute('loading', 'lazy');
+    if (!img.hasAttribute('decoding')) img.setAttribute('decoding', 'async');
+  }
+})();
+//]]>
+</script>
+</body>
+</html>

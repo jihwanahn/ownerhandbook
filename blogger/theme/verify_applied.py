@@ -284,17 +284,22 @@ def report(html_text: str, url: str, mobile_html: str | None = None) -> int:
     problems = seo_failures + duplicates
     print()
     if widget_failures:
-        print("RESULT: theme v1 is live, but its widgets do not render — the sections are empty.")
+        print("RESULT: the theme is live, but its widgets do not render — the sections are empty.")
         print("        Sections render when the blog's layout holds a widget instance for them;")
         print("        an empty 'no-items' div means it does not. In this order:")
         print("          1. Blogger -> Layout: confirm the widget boxes exist, then click")
         print("             'Save arrangement' (정렬 저장) once.")
         if generation_current:
-            print("          2. Paste blogger/theme/bisect/B0-baseline.xml (see its PLAN.md):")
-            print("             a 3-section/3-widget theme that separates 'this theme' from")
-            print("             'this blog'. Re-pasting owners-handbook-v1.xml changes nothing —")
-            print("             the served page already is this file (check [1b]).")
-            print("          3. If B0 renders its widgets, bisect this theme's blocks (PLAN.md")
+            print("          2. Apply blogger/theme/owners-handbook-v2-decl.xml — the declaration-")
+            print("             only variant of the live file (b:defaultwidgetversion='2', every")
+            print("             widget version='2' visible='true', named sections). Upload it, or")
+            print("             paste it exactly like before.")
+            print("             (Re-pasting owners-handbook-v1.xml changes nothing — the served")
+            print("             page already is that file, check [1b].)")
+            print("          3. Still empty? Paste blogger/theme/bisect/B0-baseline.xml (see its")
+            print("             PLAN.md): a 3-section/3-widget theme that separates 'this theme'")
+            print("             from 'this blog'.")
+            print("          4. If B0 renders its widgets, bisect this theme's blocks (PLAN.md")
             print("             step 4); if it does not, the layout is the problem, not the file.")
         else:
             print("          2. Re-apply the current theme file (Edit HTML -> replace all ->")

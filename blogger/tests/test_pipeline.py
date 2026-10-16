@@ -26,9 +26,15 @@ sys.path.insert(0, os.path.join(REPO, "blogger"))
 sys.path.insert(0, os.path.join(REPO, "blogger", "theme"))
 
 import blogger_api as api  # noqa: E402
+import decl_variant  # noqa: E402
 import md2blogger  # noqa: E402
 import verify_applied  # noqa: E402
 import verify_theme  # noqa: E402
+
+GML_B = "{http://www.google.com/2005/gml/b}"
+THEME_DIR = os.path.join(REPO, "blogger", "theme")
+V1_THEME = os.path.join(THEME_DIR, "owners-handbook-v1.xml")
+V2_DECL_THEME = os.path.join(THEME_DIR, "owners-handbook-v2-decl.xml")
 
 CFG = api.load_config()
 ASSETS = "https://example.github.io/owners-handbook-images"
@@ -324,6 +330,105 @@ class ThemeTests(unittest.TestCase):
         finally:
             os.unlink(tmp)
 
+    # ---- declaration generation (JHL-4, 2026-10-17) -----------------------------
+
+    def _validate_text(self, text: str) -> tuple[int, str]:
+        with tempfile.NamedTemporaryFile("w", suffix=".xml", encoding="utf-8",
+                                         delete=False) as fh:
+            fh.write(text)
+            tmp = fh.name
+        try:
+            buffer = io.StringIO()
+            with redirect_stdout(buffer):
+                code = verify_theme.main(tmp)
+            return code, buffer.getvalue()
+        finally:
+            os.unlink(tmp)
+
+    def test_declaration_variant_is_a_declarations_only_derivation_of_v1(self):
+        """The variant is the experiment's only variable: if the blog still renders no
+        widgets with it, the declaration generation was not the cause and nothing else moved."""
+        with open(V1_THEME, encoding="utf-8") as fh:
+            source = fh.read()
+        with open(V2_DECL_THEME, encoding="utf-8") as fh:
+            committed = fh.read()
+        derived, report = decl_variant.derive(source)
+        self.assertEqual(committed, derived)
+        self.assertEqual(report, {"widgets": 8, "sections": 5})
+        self.assertEqual(decl_variant.strip_declarations(committed),
+                         decl_variant.strip_declarations(source))
+
+        root = ET.fromstring(committed)
+        self.assertEqual(root.get(f"{GML_B}defaultwidgetversion"), "2")
+        self.assertEqual(root.get(f"{GML_B}version"), "2")          # kept from v1
+        self.assertEqual(root.get(f"{GML_B}responsive"), "true")    # kept from v1
+        self.assertIsNone(root.get(f"{GML_B}layoutsVersion"))       # v3 token deliberately absent
+        widgets = list(root.iter(f"{GML_B}widget"))
+        self.assertEqual(len(widgets), 8)
+        self.assertEqual({w.get("version") for w in widgets}, {"2"})
+        self.assertEqual({w.get("visible") for w in widgets}, {"true"})
+        self.assertEqual({s.get("name") for s in root.iter(f"{GML_B}section")},
+                         {"Header", "Navigation", "Posts", "Sidebar", "Footer"})
+
+    def test_declaration_variant_passes_the_validator(self):
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = verify_theme.main(V2_DECL_THEME)
+        out = buffer.getvalue()
+        self.assertEqual(code, 0, out)
+        self.assertIn("declared widget generation: 2", out)
+
+    def test_v1_keeps_passing_after_the_generation_checks_were_added(self):
+        """v1 is what the blog serves today; the new [2c] checks must not retro-fail it."""
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = verify_theme.main(V1_THEME)
+        self.assertEqual(code, 0, buffer.getvalue())
+        self.assertIn("declared widget generation: implicit", buffer.getvalue())
+
+    def test_validator_rejects_mixed_widget_generations(self):
+        with open(V2_DECL_THEME, encoding="utf-8") as fh:
+            raw = fh.read()
+        broken = raw.replace("type='Header' version='2'", "type='Header' version='1'", 1)
+        self.assertNotEqual(broken, raw)
+        code, out = self._validate_text(broken)
+        self.assertEqual(code, 1, out)
+        self.assertIn("uniform, valid version token", out)
+
+    def test_validator_rejects_a_v3_layout_token(self):
+        """b:layoutsVersion='3' would be read by Blogger against v3-model data tags,
+        which this theme does not use."""
+        with open(V2_DECL_THEME, encoding="utf-8") as fh:
+            raw = fh.read()
+        broken = raw.replace("b:defaultwidgetversion='2'", "b:defaultwidgetversion='2' b:layoutsVersion='3'", 1)
+        self.assertNotEqual(broken, raw)
+        code, out = self._validate_text(broken)
+        self.assertEqual(code, 1, out)
+        self.assertIn("b:layoutsVersion='3'", out)
+
+    def test_validator_rejects_a_generation2_section_without_a_name(self):
+        with open(V2_DECL_THEME, encoding="utf-8") as fh:
+            raw = fh.read()
+        broken = raw.replace(" id='sidebar' maxwidgets='4' showaddelement='yes' name='Sidebar'",
+                             " id='sidebar' maxwidgets='4' showaddelement='yes'", 1)
+        self.assertNotEqual(broken, raw)
+        code, out = self._validate_text(broken)
+        self.assertEqual(code, 1, out)
+        self.assertIn("unique Layout names", out)
+
+    def test_upload_guide_offers_the_declaration_variant_and_keeps_the_backup_step(self):
+        with open(os.path.join(THEME_DIR, "UPLOAD-GUIDE.md"), encoding="utf-8") as fh:
+            guide = fh.read()
+        self.assertIn("owners-handbook-v2-decl.xml", guide)
+        self.assertIn("owners-handbook-v1.xml", guide)  # the rollback file stays documented
+        self.assertIn("백업", guide)
+
+    def test_decl_variant_check_mode_flags_a_stale_file(self):
+        proc = subprocess.run([sys.executable, os.path.join(THEME_DIR, "decl_variant.py"),
+                               "--check"], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("declarations-only derivation", proc.stdout)
+
 
 class AppliedThemeTests(unittest.TestCase):
     """verify_applied.report() against synthetic pages — no network needed."""
@@ -414,10 +519,11 @@ class AppliedThemeTests(unittest.TestCase):
 
     def test_widget_failure_does_not_ask_for_a_re_paste_when_the_file_is_live(self):
         """The served page already is this file, so re-pasting it changes nothing; the
-        advice has to point at the layout save and the B0 diagnostic instead."""
+        advice has to point at the declaration variant, the layout save and B0 instead."""
         code, out = self._run(EMPTY_WIDGET_PAGE)
         self.assertEqual(code, 4, out)
         self.assertIn("Re-pasting owners-handbook-v1.xml changes nothing", out)
+        self.assertIn("owners-handbook-v2-decl.xml", out)
         self.assertIn("B0-baseline.xml", out)
         self.assertNotIn("Re-apply the current theme file", out)
 
