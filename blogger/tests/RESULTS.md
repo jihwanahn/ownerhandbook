@@ -215,11 +215,51 @@ Diagnosis order and the bisect baseline theme are in `blogger/theme/bisect/PLAN.
 (`python blogger/theme/verify_theme.py blogger/theme/bisect/B0-baseline.xml` is *not* part
 of `npm run verify:all` — it is a throwaway diagnostic, not a design).
 
+## 8. Confirmation of §7 — 2026-10-17, and one hypothesis killed
+
+Confirmation needed nothing from the owner: the live page was re-read after the chief of
+staff reported a re-save. `python blogger/theme/verify_applied.py` → **exit 4**, with the two
+new checks passing:
+
+| Question | Answer |
+| --- | --- |
+| Is the *current* file the one being served? | **Yes** — the served `<html>` element carries `class='v2'` (new check `[1b]`) |
+| Is the mobile slot on the theme? | **Yes** — `?m=1` renders our marker set, no `navbar`/`crosscol` sections, no Korean Blogger strings (new check `[6]`) |
+| Do the widgets render? | **No** — still 0 wrapper elements, 5 empty `no-items` sections, 6 registered but empty |
+
+**Killed: §7's explanation of the widget failure.** The `<html>` declarations are in effect
+and all five sections are still empty, so the missing declarations were *not* what stopped
+Blogger from instantiating widgets. Two independent pieces of evidence:
+
+- The failure reproduces identically with and without the declarations (exit 4 before the
+  re-save and after it).
+- A working control: the owner's other blog (`keineideehabeich.blogspot.com`, stock theme)
+  renders 20 widget wrappers in a page whose served element is just
+  `<html dir='ltr' lang='en'>` — **no `class='v2'` at all**. That token is not what makes
+  widgets render. What the declarations did fix is real and stays: `?m=1` moved off the stock
+  template onto this theme, and `[6]` now guards it (mobile readers were seeing a different
+  section set and Korean UI strings).
+
+Independent report of the identical symptom (support.google.com/blogger/thread/463778303,
+2026-08-30): sections render as empty `no-items` divs while the page's own JS data blob
+carries the real post data, with no console errors — and the reporter had already ruled out
+widget `version='1'` vs `'2'`, widget/section id collisions and one dangling `b:include`.
+Their key record: **a minimal 2-widget version of the same theme renders correctly on the
+same blog while the full version silently fails.** That is the bisect route already planned
+in `blogger/theme/bisect/PLAN.md`, and it means hand-pasted themes can render widgets in
+general — which §7's "the layout was never instantiated" reading alone cannot explain.
+`PLAN.md` now carries the corrected order: Layout save → B0 baseline → bisect, with the
+re-paste step demoted to "only if `[1b]` says the served page is stale".
+
+Also recorded: the blog's own locale is `ko` (Blogger settings → language, owner-side), which
+is where the Korean UI strings in `?m=1` came from while the stock template served it.
+
 ## Not yet verified (waiting on the owner)
 
-1. ~~Blogger theme upload~~ — **applied and verified** (section 6) and the live copy is the
-   post-fix version; what is still missing is the widget rendering itself (section 7). One
-   paste of the updated file plus one Layout save is the fix under test.
+1. ~~Blogger theme upload~~ — **applied and verified** (section 6), the served copy is the
+   current file (section 8, check `[1b]`), and the mobile slot is on the theme (check `[6]`).
+   What is still open is the widget rendering itself (sections 7–8): the next owner step is
+   one Layout save, then the B0 baseline paste, per `blogger/theme/bisect/PLAN.md`.
 2. **Publishing anything public** — deliberately out of scope until the owner reviews
    a draft; the tool refuses without `--confirm-owner-approved`, and the live smoke test
    verified that refusal on the real API.

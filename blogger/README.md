@@ -121,11 +121,14 @@ explicit `--run`, creates one throwaway draft, deletes it again and fails if the
 draft count changed. Run it after any change to `blogger_api.py` or the publish path.
 
 `verify_applied.py` reads the public page (no credentials) and answers the questions the
-offline validator cannot: whether the theme is actually applied, whether its **widgets
-render**, and whether its SEO tags survived the install. Exit `0` = live, rendering and
-correct, `1` = live with an SEO problem, `4` = live but every section is an empty
-`no-items` div (see `blogger/theme/bisect/PLAN.md`), `3` = not applied yet. It is
-deliberately **not** part of `npm run verify:all`, because `3` and `4` are legitimate
-states of the live blog (it is applied by hand) and would fail unrelated builds.
+offline validator cannot: whether the **current** theme file is the one being served, whether
+its **widgets render**, whether the **mobile slot** (`?m=1`) is on the theme, and whether its
+SEO tags survived the install. Exit `0` = current file live, rendering and correct,
+`1` = live with an SEO problem, `4` = live but every section is an empty `no-items` div
+(see `blogger/theme/bisect/PLAN.md`), `5` = desktop is fine but Blogger's stock template still
+serves `?m=1` (mobile-first), `3` = the current file is not what the blog serves (not applied,
+or an older generation — check `[1b]`). It is deliberately **not** part of `npm run verify:all`,
+because `3`, `4` and `5` are legitimate states of the live blog (it is applied by hand) and
+would fail unrelated builds.
 
 Results of the runs recorded for this issue: `blogger/tests/RESULTS.md`.

@@ -36,7 +36,7 @@ EXAMPLE = os.path.join(REPO, "content", "posts", "example-guide.md")
 
 # Minimal stand-in for a page rendered with the theme applied: the theme's own markers,
 # the tags the theme adds, and the tags Blogger emits exactly once.
-HEALTHY_PAGE = """<html><head>
+HEALTHY_PAGE = """<html class='v2' dir='ltr' lang='en'><head>
 <!-- The Owner's Handbook theme comment that mentions <title> and canonical. -->
 <title>The Owner's Handbook</title>
 <link href='https://example.blogspot.com/' rel='canonical'/>
@@ -68,10 +68,11 @@ _WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML2', 'footer', d
 
 
 # The live shape of the blog on 2026-10-16: our theme compiled (markers + SEO tags are
-# present) and Blogger registered every widget it knows about, but every section was
-# emitted empty, so the page showed nothing but "Skip to content". Reproduced verbatim
-# from the public page source so the regression test cannot drift from reality.
-EMPTY_WIDGET_PAGE = """<html dir='ltr' lang='en'><head>
+# present, and the served <html> carries the theme's class='v2' generation token, so the
+# *current* file is live) and Blogger registered every widget it knows about, but every
+# section was emitted empty, so the page showed nothing but "Skip to content". Reproduced
+# verbatim from the public page source so the regression test cannot drift from reality.
+EMPTY_WIDGET_PAGE = """<html class='v2' dir='ltr' lang='en'><head>
 <title>The Owner's Handbook</title>
 <meta content='https://ownerhandbook.blogspot.com/favicon.ico' property='og:image'/>
 <meta content='summary_large_image' name='twitter:card'/>
@@ -327,10 +328,10 @@ class ThemeTests(unittest.TestCase):
 class AppliedThemeTests(unittest.TestCase):
     """verify_applied.report() against synthetic pages — no network needed."""
 
-    def _run(self, html_text: str) -> tuple[int, str]:
+    def _run(self, html_text: str, mobile_html: str | None = None) -> tuple[int, str]:
         buffer = io.StringIO()
         with redirect_stdout(buffer):
-            code = verify_applied.report(html_text, "https://example.blogspot.com/")
+            code = verify_applied.report(html_text, "https://example.blogspot.com/", mobile_html)
         return code, buffer.getvalue()
 
     def test_reports_not_applied_on_a_stock_blogger_page(self):
@@ -388,6 +389,57 @@ class AppliedThemeTests(unittest.TestCase):
         self.assertEqual(code, 4, out)
         self.assertIn("RENDERED", out)
         self.assertIn("header", out)
+
+    def test_older_generation_live_is_reported_not_passed(self):
+        """The served page can be an older copy of our theme while every marker still
+        matches: before the generation declarations landed, <html> rendered with no class,
+        and the marker/SEO checks passed anyway."""
+        older = HEALTHY_PAGE.replace("<html class='v2' dir='ltr' lang='en'>",
+                                     "<html dir='ltr' lang='en'>")
+        self.assertNotEqual(older, HEALTHY_PAGE)
+        code, out = self._run(older)
+        self.assertEqual(code, 3, out)
+        self.assertIn("older generation", out)
+
+    def test_generation_check_reads_the_element_not_a_comment(self):
+        """Our theme's own comment quotes class='v2'. A page that carries the comment while
+        the served element has no class is still an older generation — reading the string
+        anywhere in the page reports it as live (my first probe did exactly that)."""
+        older = HEALTHY_PAGE.replace("<html class='v2' dir='ltr' lang='en'>",
+                                     "<html dir='ltr' lang='en'>").replace(
+            "<head>", "<head><!-- <html b:version='2' class='v2' b:responsive='true'> -->")
+        code, out = self._run(older)
+        self.assertEqual(code, 3, out)
+        self.assertIn("no class attribute at all", out)
+
+    def test_widget_failure_does_not_ask_for_a_re_paste_when_the_file_is_live(self):
+        """The served page already is this file, so re-pasting it changes nothing; the
+        advice has to point at the layout save and the B0 diagnostic instead."""
+        code, out = self._run(EMPTY_WIDGET_PAGE)
+        self.assertEqual(code, 4, out)
+        self.assertIn("Re-pasting owners-handbook-v1.xml changes nothing", out)
+        self.assertIn("B0-baseline.xml", out)
+        self.assertNotIn("Re-apply the current theme file", out)
+
+    def test_widget_failure_asks_for_a_re_paste_when_the_file_is_not_live(self):
+        older = EMPTY_WIDGET_PAGE.replace("<html class='v2' dir='ltr' lang='en'>",
+                                          "<html dir='ltr' lang='en'>")
+        code, out = self._run(older)
+        self.assertEqual(code, 4, out)
+        self.assertIn("Re-apply the current theme file", out)
+
+    def test_stock_mobile_template_fails_the_mobile_first_requirement(self):
+        stock_mobile = ("<html><head><title>b</title></head><body>"
+                        "<div class='section' id='navbar'></div>"
+                        "<div class='section' id='crosscol'></div></body></html>")
+        code, out = self._run(HEALTHY_PAGE, stock_mobile)
+        self.assertEqual(code, 5, out)
+        self.assertIn("stock template", out)
+
+    def test_mobile_slot_serving_the_theme_passes(self):
+        code, out = self._run(HEALTHY_PAGE, HEALTHY_PAGE)
+        self.assertEqual(code, 0, out)
+        self.assertIn("serves this theme", out)
 
 
 class SafetyTests(unittest.TestCase):

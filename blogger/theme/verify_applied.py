@@ -18,7 +18,10 @@ Exit codes:
     1  theme v1 is live but something is wrong with the SEO output
     4  theme v1 is live but its widgets do not render (every section is an empty
        'no-items' div) — the blog's layout has not been rebuilt against the theme
-    3  theme v1 is not applied yet (the live page still looks like a stock Blogger theme)
+    5  the theme serves desktop but Blogger's stock template still serves ?m=1
+       (mobile-first requirement)
+    3  the current theme file is not what the blog serves: the page is either still on a
+       stock theme, or on an older generation of ours (see check [1b])
     2  the page could not be fetched
 """
 
@@ -63,6 +66,22 @@ BLOGGER_SEO = [
 
 AD_SLOTS_INDEX = ("ad-top", "ad-bottom")
 
+# Blogger's own mobile fallback template, served on ?m=1 until the theme declares
+# b:responsive='true'. These section ids exist only in that stock template.
+STOCK_MOBILE_SECTIONS = [
+    (r"id=['\"]navbar['\"]", "stock mobile navbar section"),
+    (r"id=['\"]crosscol['\"]", "stock mobile crosscol section"),
+]
+
+# The rendered <html> element. Blogger strips the b: attributes and keeps class, so the
+# class tokens on the live element are the only place the theme's generation is visible
+# from outside. Counting them inside comments gives a false positive: our theme's own
+# header comment quotes `class='v2'` while explaining the declaration, and my first
+# probe today read exactly that comment and reported the declaration as live.
+HTML_TAG_RE = re.compile(r"<html\b[^>]*>", re.I)
+CLASS_ATTR_RE = re.compile(r"\bclass=['\"]([^'\"]*)['\"]")
+COMMENT_RE = re.compile(r"<!--.*?-->", re.S)
+
 THEME_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "owners-handbook-v1.xml")
 
 # Blogger wraps each instantiated widget in <div class='widget <Type>' ... id='<WidgetId>'>
@@ -88,6 +107,33 @@ def theme_declarations() -> tuple[list[str], list[str]]:
     return WIDGET_DECL_RE.findall(raw), SECTION_DECL_RE.findall(raw)
 
 
+def theme_generation_tokens() -> set[str]:
+    """Class tokens the theme file declares on its own <html> element (e.g. {'v2'})."""
+    try:
+        with open(THEME_FILE, encoding="utf-8") as fh:
+            raw = fh.read()
+    except OSError:
+        return set()
+    tag = HTML_TAG_RE.search(COMMENT_RE.sub("", raw))
+    if not tag:
+        return set()
+    class_attr = CLASS_ATTR_RE.search(tag.group(0))
+    return set(class_attr.group(1).split()) if class_attr else set()
+
+
+def live_generation_tokens(html_text: str) -> set[str]:
+    """Class tokens on the <html> element Blogger actually served, comments ignored.
+
+    The element itself, never the theme's comments: a page can carry our theme's comment
+    saying `class='v2'` while the element rendered from an older file has no class at all.
+    """
+    tag = HTML_TAG_RE.search(COMMENT_RE.sub("", html_text))
+    if not tag:
+        return set()
+    class_attr = CLASS_ATTR_RE.search(tag.group(0))
+    return set(class_attr.group(1).split()) if class_attr else set()
+
+
 
 def fetch(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": UA})
@@ -95,7 +141,7 @@ def fetch(url: str) -> str:
         return resp.read().decode("utf-8", "replace")
 
 
-def report(html_text: str, url: str) -> int:
+def report(html_text: str, url: str, mobile_html: str | None = None) -> int:
     head = html_text[: html_text.find("</head>") + 7] if "</head>" in html_text else html_text
     # Blogger renders the theme's source comments into the page, and our theme's header
     # comment mentions <title> and canonical. Counting tags without stripping comments
@@ -124,6 +170,30 @@ def report(html_text: str, url: str) -> int:
     if missing_markers:
         print(f"\n  ({len(missing_markers)} marker(s) missing — the theme may be applied but")
         print("   edited. Continuing with the SEO checks.)")
+
+    print("\n[1b] Theme generation in the rendered page")
+    # "The theme is live" and "the *current* theme file is live" are different questions.
+    # The owner saves by hand, so a paste can silently not land, or land as an older copy;
+    # the class tokens on the served <html> element are the only outside evidence of which
+    # generation is up. Blogger strips the b: attributes, so `class='v2'` is the marker.
+    declared_tokens = theme_generation_tokens()
+    live_tokens = live_generation_tokens(html_text)
+    missing_tokens = sorted(declared_tokens - live_tokens)
+    if not declared_tokens:
+        generation_current = None
+        print("  theme file declares no <html> class — nothing to compare (skip)")
+    else:
+        generation_current = not missing_tokens
+        print(f"  theme file declares : class='{' '.join(sorted(declared_tokens))}'")
+        if live_tokens:
+            print(f"  live <html> carries : class='{' '.join(sorted(live_tokens))}'")
+        else:
+            print("  live <html> carries : no class attribute at all")
+        if generation_current:
+            print("  PASS  the served page is the current theme generation")
+        else:
+            print("  FAIL  the blog is serving an older generation of the theme"
+                  f" (missing: {', '.join(missing_tokens)})")
 
     print("\n[2] SEO tags the theme is responsible for")
     seo_failures = []
@@ -188,20 +258,65 @@ def report(html_text: str, url: str) -> int:
     if not widget_failures:
         print("  PASS  every declared widget produced markup")
 
+    print("\n[6] Mobile slot (mobile-first: the theme must serve ?m=1)")
+    mobile_failures: list[str] = []
+    if mobile_html is None:
+        print("  SKIP  no mobile page fetched")
+    else:
+        mobile_markers = [label for pattern, label in THEME_MARKERS
+                          if re.search(pattern, mobile_html, re.I)]
+        stock_markers = [label for pattern, label in STOCK_MOBILE_SECTIONS
+                         if re.search(pattern, mobile_html, re.I)]
+        if stock_markers:
+            mobile_failures.append("?m=1 is served by Blogger's stock template: "
+                                   + ", ".join(stock_markers))
+            print("  FAIL  ?m=1 still runs Blogger's stock template — the theme's")
+            print("        b:responsive='true' declaration is not in effect, so mobile")
+            print("        readers never see the theme (and its SEO tags).")
+        elif len(mobile_markers) < len(THEME_MARKERS):
+            mobile_failures.append(f"?m=1 shows only {len(mobile_markers)}/{len(THEME_MARKERS)}"
+                                   " theme markers")
+            print(f"  FAIL  ?m=1 shows only {len(mobile_markers)}/{len(THEME_MARKERS)}"
+                  " theme markers")
+        else:
+            print("  PASS  ?m=1 serves this theme (not the stock mobile template)")
+
     problems = seo_failures + duplicates
     print()
     if widget_failures:
         print("RESULT: theme v1 is live, but its widgets do not render — the sections are empty.")
-        print("        The blog's layout was never rebuilt against this theme, so Blogger has")
-        print("        nothing to instantiate. Fix, in this order:")
+        print("        Sections render when the blog's layout holds a widget instance for them;")
+        print("        an empty 'no-items' div means it does not. In this order:")
         print("          1. Blogger -> Layout: confirm the widget boxes exist, then click")
         print("             'Save arrangement' (정렬 저장) once.")
-        print("          2. Re-apply the theme (Edit HTML -> replace all -> Save), then re-run this.")
-        print("          3. Still empty? Paste blogger/theme/bisect/B0-baseline.xml (see its PLAN.md)")
-        print("             to prove whether any custom theme can render widgets on this blog.")
+        if generation_current:
+            print("          2. Paste blogger/theme/bisect/B0-baseline.xml (see its PLAN.md):")
+            print("             a 3-section/3-widget theme that separates 'this theme' from")
+            print("             'this blog'. Re-pasting owners-handbook-v1.xml changes nothing —")
+            print("             the served page already is this file (check [1b]).")
+            print("          3. If B0 renders its widgets, bisect this theme's blocks (PLAN.md")
+            print("             step 4); if it does not, the layout is the problem, not the file.")
+        else:
+            print("          2. Re-apply the current theme file (Edit HTML -> replace all ->")
+            print("             Save) — the served page is an older generation (check [1b]).")
+            print("          3. Still empty? Paste blogger/theme/bisect/B0-baseline.xml (see its")
+            print("             PLAN.md) to prove whether any custom theme can render widgets here.")
         for f in widget_failures:
             print(f"        - {f}")
         return 4
+    if generation_current is False:
+        print("RESULT: theme v1 is live and rendering, but the served page is an older")
+        print("        generation than the file in this repo (check [1b]), so the latest fixes")
+        print("        are not live yet. Re-apply blogger/theme/owners-handbook-v1.xml")
+        print("        (blogger/theme/UPLOAD-GUIDE.md) and re-run this script.")
+        return 3
+    if mobile_failures:
+        print("RESULT: desktop is fine, but the mobile-first requirement is not met:")
+        for f in mobile_failures:
+            print(f"  - {f}")
+        print("        Re-apply the theme file: its <html> carries")
+        print("        b:responsive='true', which is what moves the ?m=1 slot to the theme.")
+        return 5
     if problems:
         print("RESULT: theme v1 is live, but these checks failed:")
         for p in problems:
@@ -209,6 +324,17 @@ def report(html_text: str, url: str) -> int:
         return 1
     print("RESULT: theme v1 is live and its SEO tags are correct")
     return 0
+
+
+def mobile_url(url: str) -> str:
+    """The same page as Blogger's mobile slot serves it (?m=1).
+
+    Our theme declares b:responsive='true', which is what makes Blogger use the theme for
+    the mobile slot instead of its stock mobile template; before that declaration this
+    blog served a stock template with different sections and Korean UI strings on ?m=1.
+    """
+    sep = "&" if "?" in url else "?"
+    return f"{url}{sep}m=1"
 
 
 def main() -> int:
@@ -222,7 +348,13 @@ def main() -> int:
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
         print(f"Could not fetch {args.url}: {exc}")
         return 2
-    return report(html_text, args.url)
+    try:
+        mobile_html = fetch(mobile_url(args.url))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
+        print(f"Could not fetch the mobile copy ({mobile_url(args.url)}): {exc}"
+              " — skipping check [6]")
+        mobile_html = None
+    return report(html_text, args.url, mobile_html)
 
 
 if __name__ == "__main__":
