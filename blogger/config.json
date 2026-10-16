@@ -1,0 +1,45 @@
+{
+  "company": "JH Labs",
+  "siteName": "The Owner's Handbook",
+  "blog": {
+    "id": "7741670259780687576",
+    "blogspotUrl": "https://ownerhandbook.blogspot.com",
+    "customDomainUrl": null,
+    "_note": "blogspotUrl is the live host until a custom domain is connected. Never hard-code either URL in scripts — read this file."
+  },
+  "paths": {
+    "secretsDir": "C:/Users/colds/jhl-secrets",
+    "clientJson": "blogger-oauth-client.json",
+    "tokenJson": "blogger-oauth-token.json"
+  },
+  "oauth": {
+    "scopes": [
+      "https://www.googleapis.com/auth/blogger",
+      "https://www.googleapis.com/auth/webmasters.readonly"
+    ],
+    "loopbackHost": "127.0.0.1",
+    "loopbackPort": 0
+  },
+  "publishing": {
+    "defaultPostState": "draft",
+    "requireOwnerApprovalForPublish": true,
+    "searchDescriptionMaxLength": 150
+  },
+  "labels": {
+    "_comment": "Phase 0 category clusters. Blogger labels are the category system; keep this list and the theme's label widget in sync.",
+    "start-a-business": "Starting a Business",
+    "startup-costs": "Startup Costs",
+    "licensing-and-registration": "Licensing & Registration",
+    "pricing": "Pricing Your Services",
+    "tools-and-software": "Tools & Software",
+    "getting-customers": "Getting Customers"
+  },
+  "assets": {
+    "localDir": "assets/images",
+    "publicBaseUrl": null,
+    "_note": "Set publicBaseUrl once GitHub Pages image hosting is connected (Phase 2). Until then md2blogger.py refuses to emit absolute image URLs unless --assets-base is passed."
+  },
+  "links": {
+    "mapFile": "content/link-map.json"
+  }
+}

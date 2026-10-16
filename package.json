@@ -11,7 +11,11 @@
     "verify": "node scripts/verify-seo.mjs",
     "og:image": "node scripts/generate-og-image.mjs",
     "astro": "astro",
-    "rename": "node scripts/rename-site.mjs"
+    "rename": "node scripts/rename-site.mjs",
+    "theme:check": "python blogger/theme/verify_theme.py",
+    "pipeline:test": "python blogger/tests/test_pipeline.py",
+    "images:check": "python blogger/images/optimize_images.py check",
+    "verify:all": "npm run verify && npm run theme:check && npm run pipeline:test && npm run images:check"
   },
   "dependencies": {
     "@astrojs/rss": "^4.0.12",

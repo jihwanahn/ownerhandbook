@@ -1,9 +1,42 @@
-# The Owner's Handbook — ownerhandbook.com
+# The Owner's Handbook — ownerhandbook.blogspot.com
 
-Static site for **The Owner's Handbook**, a small business startup and operations
-guide site for a US audience. Built with Astro, deployed to Cloudflare Pages.
+Content and publishing repo for **The Owner's Handbook**, a small business startup and
+operations guide site for a US audience.
 
+- **Live site:** `https://ownerhandbook.blogspot.com` (Blogger, free blogspot address)
 - **Local path:** `E:\ownerhandbook`
+- **Publishing track (current):** Blogger — see `blogger/README.md`
+- **Migration asset (parked):** the Astro static site below. Deployment is on hold
+  until a custom domain is connected; the scaffold, its SEO rules and its verify
+  scripts are kept working so a migration can resume without rebuild.
+
+## Two things live in this repo
+
+| Directory | Role | Status |
+| --- | --- | --- |
+| `blogger/`, `content/`, `assets/` | markdown masters, Blogger pipeline, theme, images | **active** — this is how guides get published |
+| `src/`, `public/`, `docs/`, `scripts/` | Astro site skeleton (former plan) | parked, build still passes |
+
+Markdown masters are the permanent source of truth: every published guide keeps its
+original `.md` in `content/posts/`, so the site can be re-platformed at any time.
+
+## Blogger pipeline (quick reference)
+
+```bash
+python blogger/oauth_login.py                     # one-time owner approval (see blogger/README.md)
+python blogger/md2blogger.py content/posts/x.md   # convert + quality gate, no network
+python blogger/publish.py create content/posts/x.md --assets-base https://<asset-host>
+python blogger/publish.py publish <postId> --confirm-owner-approved "who, when"
+python blogger/tests/test_pipeline.py             # 31 offline tests
+npm run verify:all                                # astro SEO checks + theme + pipeline + images
+```
+
+Publishing is **draft-first**: a guide becomes a private Blogger draft, the owner
+reviews the preview, and only then is it published.
+
+## Astro site (parked migration asset)
+
+Static site for the same content, built with Astro and prepared for Cloudflare Pages.
 - **Stack:** Astro 5 (static output) + `@astrojs/sitemap` + `@astrojs/rss`
 - **Hosting:** Cloudflare Pages (free tier), Git-connected to the GitHub repo
 - **Site URL (canonical):** `https://ownerhandbook.com` — defined once as `SITE.url`

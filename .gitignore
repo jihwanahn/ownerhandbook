@@ -25,3 +25,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# image pipeline intermediates (regenerate with blogger/images/*.py)
+blogger/images/build/
+__pycache__/
+*.pyc

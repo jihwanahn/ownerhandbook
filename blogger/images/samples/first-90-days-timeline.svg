@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img">
+  <rect width="1200" height="620" fill="#ffffff"/>
+  <text x="64" y="86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">The first 90 days</text>
+  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">What actually has a deadline after you form the company</text>
+  <line x1="210" y1="320" x2="990" y2="320" stroke="#e4e7eb" stroke-width="6"/>
+  <circle cx="210" cy="320" r="16" fill="#14532d"/>
+  <circle cx="210" cy="320" r="7" fill="#ffffff"/>
+  <text x="210" y="274" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Day 0</text>
+  <text x="210" y="382" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Formation filed</text>
+  <text x="210" y="416" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Articles of organisation</text>
+  <text x="210" y="444" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">accepted, EIN applied for</text>
+  <circle cx="470" cy="320" r="16" fill="#14532d"/>
+  <circle cx="470" cy="320" r="7" fill="#ffffff"/>
+  <text x="470" y="274" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Day 30</text>
+  <text x="470" y="382" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Bank and records</text>
+  <text x="470" y="416" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Business account opened,</text>
+  <text x="470" y="444" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">receipts filed from day one</text>
+  <circle cx="730" cy="320" r="16" fill="#14532d"/>
+  <circle cx="730" cy="320" r="7" fill="#ffffff"/>
+  <text x="730" y="274" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Day 60</text>
+  <text x="730" y="382" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Licences and permits</text>
+  <text x="730" y="416" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Local business licence,</text>
+  <text x="730" y="444" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">sales tax registration if</text>
+  <text x="730" y="472" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">selling goods</text>
+  <circle cx="990" cy="320" r="16" fill="#14532d"/>
+  <circle cx="990" cy="320" r="7" fill="#ffffff"/>
+  <text x="990" y="274" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Day 90</text>
+  <text x="990" y="382" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Habits that stick</text>
+  <text x="990" y="416" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Monthly close, quarterly</text>
+  <text x="990" y="444" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">estimates reserved</text>
+  <text x="64" y="580" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#8a5a00">Illustrative sample — replace the figures with cited data before this image is published.</text>
+</svg>
