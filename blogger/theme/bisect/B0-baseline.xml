@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html>
+<!--
+  JHL-4 BISECT BASELINE — throwaway diagnostic file, NOT a design.
+  ==================================================================
+  Paste this into Theme -> Edit HTML ONLY as step 3 of blogger/theme/bisect/PLAN.md,
+  and only after steps 1-2 did not fix the empty sections. It strips every variable
+  our real theme carries (no CSS, no JSON-LD, no OG tags, no ads, 3 sections and 3
+  widgets instead of 5/8, no PageList/Label widgets, no data tags except the title)
+  while keeping:
+
+    - the Layouts v2 declarations every known-good theme has (b:version='2',
+      class='v2', b:responsive='true')
+    - the same section ids and widget ids as the real theme, so Blogger has
+      something to match in the existing layout
+    - three sections (one section alone makes Blogger render no widgets at all,
+      see the accepted answer in stackoverflow.com/q/77741780)
+    - one literal marker inside a widget includable, which needs no data and no
+      settings, so it can only be absent if the widget itself never rendered.
+
+  Two signals to look for on the live page after pasting:
+    1. "B0-MARKER-WIDGET-RENDERED"      -> a widget with a custom includable renders
+    2. the Blog widget's own default markup (a post list, or Blogger's
+       "no posts" message)             -> Blogger renders the layout at all
+  Both absent  -> this blog cannot render widgets for a hand-pasted theme; stop
+                  bisecting the theme file and follow PLAN.md step 4.
+  Marker shown -> the blog renders widgets fine; the fault is in the real theme's
+                  structure, and PLAN.md step 4 (B1 variants) applies.
+-->
+<html b:version='2' b:responsive='true' class='v2' expr:dir='data:blog.languageDirection' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<head>
+  <meta content='width=device-width, initial-scale=1' name='viewport'/>
+  <b:include data='blog' name='all-head-content'/>
+  <title><data:blog.pageTitle/></title>
+  <b:skin><![CDATA[
+body { margin: 0 auto; max-width: 40rem; padding: 1rem; font: 16px/1.6 system-ui, sans-serif; }
+.b0-note { background: #fffbe6; border: 1px solid #e0c97f; padding: .5rem .75rem; }
+]]></b:skin>
+</head>
+<body>
+<p class='b0-note'>B0 baseline theme — a diagnostic page, not a design. This notice is normal.</p>
+
+<b:section class='b0-header' id='header' name='Header' maxwidgets='1' showaddelement='no'>
+  <b:widget id='Header1' locked='false' title='B0 header' type='Header' version='1'>
+    <b:includable id='main'>
+      <h1 class='b0-title'><data:title/></h1>
+      <p class='b0-marker'>B0-MARKER-WIDGET-RENDERED</p>
+    </b:includable>
+  </b:widget>
+</b:section>
+
+<b:section class='b0-main' id='main-posts' name='Posts' maxwidgets='1' showaddelement='no'>
+  <b:widget id='Blog1' locked='true' title='Blog Posts' type='Blog'/>
+</b:section>
+
+<b:section class='b0-footer' id='footer' name='Footer' maxwidgets='1' showaddelement='yes'>
+  <b:widget id='HTML1' locked='false' title='B0 html' type='HTML' version='1'>
+    <b:widget-settings>
+      <b:widget-setting name='content'>B0-HTML-WIDGET-RENDERED</b:widget-setting>
+    </b:widget-settings>
+    <b:includable id='main'>
+      <div class='widget-content b0-html'>
+        <b:if cond='data:title != &quot;&quot;'>
+          <p class='widget-title'><data:title/></p>
+        </b:if>
+        <data:content/>
+      </div>
+    </b:includable>
+  </b:widget>
+</b:section>
+</body>
+</html>

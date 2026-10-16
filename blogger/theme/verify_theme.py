@@ -140,6 +140,18 @@ def main(path: str) -> int:
     check("$(body.text.color)" in skin_text, "CSS uses theme-designer variables")
     check(len(skin_text) < 20000, "CSS stays inside a lightweight budget", f"{len(skin_text)} chars")
 
+    print("\n[2b] Theme generation declarations (required for widgets to instantiate)")
+    # Blogger only instantiates and renders <b:widget> content for themes that declare
+    # which layout generation they are written against. Omitting these produced a live
+    # page whose five sections all rendered as empty 'no-items' divs while Blogger still
+    # registered every widget client-side (JHL-4, 2026-10-16).
+    check(re.search(r"<html[^>]*\sb:version='2'", raw) is not None,
+          "<html> declares b:version='2'")
+    check(re.search(r"<html[^>]*\sclass='[^']*\bv2\b", raw) is not None,
+          "<html> declares class='v2' (Blogger's layouts-v2 hook)")
+    check(re.search(r"<html[^>]*\sb:responsive='true'", raw) is not None,
+          "<html> declares b:responsive='true' (mobile uses this theme, not the fallback)")
+
     print("\n[3] Widgets, sections and includables")
     widgets = list(root.iter(f"{B}widget"))
     check(len(widgets) > 0, "theme declares widgets")

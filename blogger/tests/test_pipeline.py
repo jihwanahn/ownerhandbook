@@ -17,6 +17,7 @@ import tempfile
 import unittest
 import urllib.error
 import urllib.request
+import xml.etree.ElementTree as ET
 from contextlib import redirect_stdout
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -46,11 +47,64 @@ HEALTHY_PAGE = """<html><head>
 <script type='application/ld+json'>{"@type":"WebSite"}</script>
 <style><!-- .ad-slot { margin: 1.5rem 0; } --></style>
 </head><body>
-<header class='site-header'><h1 class='site-title'>The Owner's Handbook</h1></header>
-<nav class='site-nav'><ul class='page-list'><li><a href='/'>Home</a></li></ul></nav>
+<header class='site-header'><div class='site-brand section' id='header'><div class='widget Header' data-version='1' id='Header1'><h1 class='site-title'>The Owner's Handbook</h1></div></div></header>
+<nav class='site-nav'><div class='nav-pages section' id='nav'><div class='widget PageList' data-version='1' id='PageList1'><ul class='page-list'><li><a href='/'>Home</a></li></ul></div><div class='widget Label' data-version='1' id='Label1'><ul class='label-list'></ul></div></div></nav>
 <div class='ad-slot ad-top' id='ad-top'><!-- ADSENSE-TOP: empty --></div>
-<footer class='site-footer'>Copyright</footer>
+<div class='main-posts section' id='main-posts'><div class='widget Blog' data-version='1' id='Blog1'><div class='blog-posts hfeed'></div></div></div>
+<aside class='sidebar'><div class='sidebar-widgets section' id='sidebar'><div class='widget HTML' data-version='1' id='HTML1'><div class='widget-content'>About this site</div></div><div class='widget Label' data-version='1' id='Label2'><ul class='label-list'></ul></div></div></aside>
+<footer class='site-footer'><div class='footer-widgets section' id='footer'><div class='widget PageList' data-version='1' id='PageList2'><ul class='page-list'></ul></div><div class='widget HTML' data-version='1' id='HTML2'><div class='widget-content'>Independent publication.</div></div></div>Copyright</footer>
 <div class='ad-slot ad-bottom' id='ad-bottom'><!-- ADSENSE-BOTTOM: empty --></div>
+<script type='text/javascript'>
+_WidgetManager._RegisterWidget('_HeaderView', new _WidgetInfo('Header1', 'header', document.getElementById('Header1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_PageListView', new _WidgetInfo('PageList1', 'nav', document.getElementById('PageList1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_LabelView', new _WidgetInfo('Label1', 'nav', document.getElementById('Label1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_BlogView', new _WidgetInfo('Blog1', 'main-posts', document.getElementById('Blog1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML1', 'sidebar', document.getElementById('HTML1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_LabelView', new _WidgetInfo('Label2', 'sidebar', document.getElementById('Label2'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_PageListView', new _WidgetInfo('PageList2', 'footer', document.getElementById('PageList2'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML2', 'footer', document.getElementById('HTML2'), {}, 'displayModeFull'));
+</script>
+</body></html>"""
+
+
+# The live shape of the blog on 2026-10-16: our theme compiled (markers + SEO tags are
+# present) and Blogger registered every widget it knows about, but every section was
+# emitted empty, so the page showed nothing but "Skip to content". Reproduced verbatim
+# from the public page source so the regression test cannot drift from reality.
+EMPTY_WIDGET_PAGE = """<html dir='ltr' lang='en'><head>
+<title>The Owner's Handbook</title>
+<meta content='https://ownerhandbook.blogspot.com/favicon.ico' property='og:image'/>
+<meta content='summary_large_image' name='twitter:card'/>
+<meta content='width=device-width, initial-scale=1' name='viewport'/>
+<link href='https://ownerhandbook.blogspot.com/' rel='canonical'/>
+<meta content='https://ownerhandbook.blogspot.com/' property='og:url'/>
+<script type='application/ld+json'>{"@type":"WebSite"}</script>
+<style><!-- .ad-slot { margin: 1.5rem 0; } --></style>
+</head><body>
+<a class='skip-link' href='#main'>Skip to content</a>
+<header class='site-header'><div class='wrap site-header-inner'>
+<div class='site-brand no-items section' id='header'></div>
+</div></header>
+<nav class='site-nav'><div class='wrap site-nav-inner'>
+<div class='nav-pages no-items section' id='nav'></div>
+</div></nav>
+<main class='main-col' id='main'>
+<div class='ad-slot ad-top' id='ad-top'><!-- ADSENSE-TOP --></div>
+<div class='main-posts no-items section' id='main-posts'></div>
+</main>
+<aside class='sidebar'><div class='sidebar-widgets no-items section' id='sidebar'></div></aside>
+<footer class='site-footer'><div class='wrap site-footer-inner'>
+<div class='footer-widgets no-items section' id='footer'></div>
+</div></footer>
+<div class='ad-slot ad-bottom' id='ad-bottom'><!-- ADSENSE-BOTTOM --></div>
+<script type='text/javascript'>
+_WidgetManager._RegisterWidget('_HeaderView', new _WidgetInfo('Header1', 'header', document.getElementById('Header1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_PageListView', new _WidgetInfo('PageList1', 'nav', document.getElementById('PageList1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_BlogView', new _WidgetInfo('Blog1', 'main-posts', document.getElementById('Blog1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML1', 'sidebar', document.getElementById('HTML1'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_PageListView', new _WidgetInfo('PageList2', 'footer', document.getElementById('PageList2'), {}, 'displayModeFull'));
+_WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML2', 'footer', document.getElementById('HTML2'), {}, 'displayModeFull'));
+</script>
 </body></html>"""
 
 
@@ -230,6 +284,18 @@ class RepoFixtureTests(unittest.TestCase):
 
 
 class ThemeTests(unittest.TestCase):
+    def test_theme_declares_its_layout_generation(self):
+        """Regression (JHL-4, 2026-10-16): without these three declarations on <html>
+        Blogger compiled the theme but instantiated none of its widgets, so every
+        section rendered as an empty 'no-items' div. Assert on the parsed root element
+        so a comment cannot satisfy the check."""
+        with open(os.path.join(REPO, "blogger", "theme", "owners-handbook-v1.xml"),
+                  encoding="utf-8") as fh:
+            root = ET.fromstring(fh.read())
+        self.assertEqual(root.get("{http://www.google.com/2005/gml/b}version"), "2")
+        self.assertEqual(root.get("{http://www.google.com/2005/gml/b}responsive"), "true")
+        self.assertIn("v2", (root.get("class") or "").split())
+
     def test_theme_validator_passes(self):
         buffer = io.StringIO()
         with redirect_stdout(buffer):
@@ -295,6 +361,33 @@ class AppliedThemeTests(unittest.TestCase):
         code, out = self._run(commented)
         self.assertEqual(code, 0, out)
         self.assertIn("<title>: 1", out)
+
+    def test_empty_widget_sections_are_a_failure_not_a_pass(self):
+        """Regression: the live page on 2026-10-16 passed every SEO check while rendering
+        zero widgets. Markers and SEO tags are not evidence that the theme works."""
+        code, out = self._run(EMPTY_WIDGET_PAGE)
+        self.assertEqual(code, 4, out)
+        self.assertIn("widgets do not render", out)
+        self.assertIn("Save arrangement", out)
+
+    def test_registered_widget_without_markup_is_reported(self):
+        broken = HEALTHY_PAGE.replace(
+            "<div class='widget Blog' data-version='1' id='Blog1'>"
+            "<div class='blog-posts hfeed'></div></div>", "")
+        self.assertNotEqual(broken, HEALTHY_PAGE)
+        code, out = self._run(broken)
+        self.assertEqual(code, 4, out)
+        self.assertIn("Blog1", out)
+
+    def test_widget_wrapper_inside_a_script_is_not_counted(self):
+        """Blogger's registration script also mentions every id; only real markup counts."""
+        code, out = self._run(EMPTY_WIDGET_PAGE.replace(
+            "<div class='site-brand no-items section' id='header'></div>",
+            "<div class='site-brand section' id='header'>"
+            "<div class='widget Header' data-version='1' id='Header1'></div></div>"))
+        self.assertEqual(code, 4, out)
+        self.assertIn("RENDERED", out)
+        self.assertIn("header", out)
 
 
 class SafetyTests(unittest.TestCase):

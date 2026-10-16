@@ -169,11 +169,57 @@ comments — but the marker check deliberately does **not**, because Blogger inl
 `<b:skin>` as `<style><!-- … --></style>` and the CSS marker would otherwise disappear.
 Both cases are covered by tests.
 
+## 7. The live theme does not render a single widget — found 2026-10-16
+
+The re-check of the live blog found a failure that section 6's checks could not see: the
+theme is applied and its SEO tags are correct, but **every section renders empty**, so the
+page shows nothing but "Skip to content".
+
+`python blogger/theme/verify_applied.py` — **exit 4** (new code, `[5]` below):
+
+| Observed on the live page | Value |
+| --- | --- |
+| Sections | all 5 rendered as `<div class='… no-items section' id='…'></div>` |
+| Widget wrapper elements (`<div class='widget …' id='…'>`) | **0** |
+| Widgets Blogger registered client-side (`_RegisterWidget`) | 6 (Header1, PageList1, Blog1, HTML1, PageList2, HTML2) |
+| Widgets the theme declares | **8** — Label1 and Label2 are not instantiated at all |
+| The "text" a reader sees | `Skip to content` |
+| Same blog on `?m=1` (stock mobile template, different template slot) | 9 widgets render normally |
+
+Reading: Blogger knows the widget **model** (it registered the widgets and computed their
+settings — the `Pages` widget even carried the `Home` link and the blog title), but emitted
+**no widget markup**. That is the shape of a theme whose widgets were never instantiated in
+the blog's layout, not of a broken theme file — the file compiles (no `<b:widget`/`<data:`
+leak in the page, CSS inlined, markers present).
+
+Also found while measuring:
+
+- **The theme never declared its layout generation.** `<html>` carried no `b:version='2'`,
+  no `class='v2'` and no `b:responsive='true'`; every theme Blogger renders widgets for has
+  them, including the stock template serving this blog's `?m=1`. Added to the file, with
+  new validator checks `[2b]` (3 of the 42) and a parsed-root regression test.
+- **The live copy is the post-fix version** — the page still carries the fix-bundle comment
+  ("derived from `data:blog.homepageUrl` so no host or site name is hard-coded here"), so the
+  owner did re-save after `2e60151` and section 6's §4-1 caveat is stale. Only the new
+  `<html>` declarations (section 7) still need one paste.
+- **Mobile is served by a different template slot.** `?m=1` renders the stock Blogger
+  template (navbar/crosscol/footer-1/3) with Korean Blogger strings (`글이 없습니다`, `홈`),
+  because the theme is not declared responsive. `b:responsive='true'` addresses it; the blog's
+  own language setting (currently `ko`) is what those strings follow.
+- **`verify_applied.py` passed this page before this run.** Markers and SEO tags are not
+  evidence that a theme works, so the new `[5]` check reports each declared widget as
+  `RENDERED / REGISTERED BUT EMPTY / NOT INSTANTIATED` and returns exit 4 when the sections
+  are empty. Regression tests replay the real page shape (`EMPTY_WIDGET_PAGE`).
+
+Diagnosis order and the bisect baseline theme are in `blogger/theme/bisect/PLAN.md`
+(`python blogger/theme/verify_theme.py blogger/theme/bisect/B0-baseline.xml` is *not* part
+of `npm run verify:all` — it is a throwaway diagnostic, not a design).
+
 ## Not yet verified (waiting on the owner)
 
-1. ~~Blogger theme upload~~ — **done and verified** (section 6). Note the live copy is the
-   version from before the two fixes above; re-applying the same way removes the
-   hard-coded fallback URL. Nothing else differs.
+1. ~~Blogger theme upload~~ — **applied and verified** (section 6) and the live copy is the
+   post-fix version; what is still missing is the widget rendering itself (section 7). One
+   paste of the updated file plus one Layout save is the fix under test.
 2. **Publishing anything public** — deliberately out of scope until the owner reviews
    a draft; the tool refuses without `--confirm-owner-approved`, and the live smoke test
    verified that refusal on the real API.

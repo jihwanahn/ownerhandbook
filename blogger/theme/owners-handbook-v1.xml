@@ -21,7 +21,16 @@
   Editors: keep <title> tags free of double quotes — titles are injected
   into the JSON-LD block on item pages.
 -->
-<html expr:dir='data:blog.languageDirection' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
+<!-- Widget/includable style is classic Layouts v2 (data tags verified
+  against an uploaded production theme) so Blogger's theme validator
+  accepts it. Do not introduce v3-only data tags here.
+
+  The <html> element below must carry the Layouts v2 declarations
+  (b:version='2', class='v2', b:responsive='true'). Every theme Blogger
+  renders widgets for has them, including the stock template still served
+  on ?m=1 of this blog; the widget declarations alone are not enough.
+-->
+<html b:version='2' b:responsive='true' class='v2' expr:dir='data:blog.languageDirection' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
 <head>
   <b:include data='blog' name='all-head-content'/>
   <!-- Title: Blogger's own tag first, then the theme's title (all-head-content does not emit <title>). -->
