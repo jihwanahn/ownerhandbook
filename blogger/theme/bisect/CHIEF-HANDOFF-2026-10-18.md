@@ -146,6 +146,8 @@ B0-baseline에 **프로브 2개**를 추가했습니다(새 id라 레이아웃�
 3. **댓글 (B) JHL-4 게시 ✓** — id `5951a544-349e-49c5-bd6c-b9421c190d0d` (11:13:02Z, 검증 완료). 엔지니어 지시 3건(B0 검토·편입 / v3-선언 변형 2파일 / 검증기 [2c] 예외).
 4. 추가 웨이크 발화 없음(중복 방지).
 
+**차기 런 메모(신규):** 대표님이 카드 `d7e796e3` 대신 **댓글로 결과**를 주면 — 댓글 처리 후 카드도 함께 정리할 것: `POST /api/issues/{id}/interactions/{interactionId}/resolve-from-comment` `{commentId, decision}` (상황에 따라 `respond`/`skip`). 근거: first-task 스킬 — 채팅으로 온 수락/응답은 진행 전에 해당 카드에 기록(persist)해야 함. 카드로 답하면 그대로 진행.
+
 **다음 트리거 대기:** ① 대표님 카드 `d7e796e3` 답변 또는 JHL-1 댓글(assignee 복원됨 → 웨이크 정상) → (C) 매트릭스 처리. ② 엔지니어 JHL-4 응답 → B0/v3 산출물. ③ 미결: `4fc4fe0d`(GitHub — 이미지 호스팅, 첫 글 전), JHL-4 카드 `c0483a9b` 정리(엔지니어 합의 후).
 
 **재확인된 기술 사실:** 라이브 = `owners-handbook-v2-decl` / `_RegisterWidget` 6(Header1/PageList1/Blog1/HTML1/PageList2/HTML2) / 위젯 렌더 0 / `Skip to content`만 노출. API: 댓글=POST `/api/issues/{id}/comments` `{body}`(201), 상태=PATCH `/api/issues/{id}` `{status}` — OpenAPI(`/api/openapi.json`) 기준.
