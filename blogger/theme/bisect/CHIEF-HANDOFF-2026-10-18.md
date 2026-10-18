@@ -1,4 +1,4 @@
-# 참모장 핸드오프 — 2026-10-18 (런 083687b3, 미완료분)
+# 참모장 핸드오프 — 2026-10-18 (런 083687b3 미완료분 + 런 e4560d03 결과·지시)
 
 이 런은 **이슈에 묶이지 않은 수동 실행**(run.contextSnapshot에 issueId 없음)이라
 Paperclip의 cross-issue 가드가 **모든 이슈 댓글/수정을 403으로 거부**했습니다
@@ -85,3 +85,31 @@ B0-baseline에 **프로브 2개**를 추가했습니다(새 id라 레이아웃�
 3. 검증기 `[2c]`의 `no b:layoutsVersion='3'` 항목은 위 변형 전용 예외 규칙으로 조정 부탁드립니다.
 
 이견 있으면 근거와 함께 반대해 주세요. 대표님 결과 오는 대로 재검증 값과 함께 이어서 지시하겠습니다.
+
+---
+
+## (C) 2차 수동 런 e4560d03 결과 + **다음 바운드 런 실행 체크리스트** (2026-10-18 저녁 작성)
+
+### 이번 런에서 확인한 것
+- 라이브 재실측(직접 파서 + 프로젝트 검증기 `verify_applied.py` → **exit 4**): 지난 런과 **완전 동일** — 등록 6(Header1/PageList1/Blog1/HTML1/PageList2/HTML2), `no-items` 5, 위젯 wrapper 0, `<html class='v2'>` 유지. 대표님 ①②③ 미완료, 카드 `d7e796e3` 여전히 pending, 마지막 사용자 활동은 10-17 17:20Z 댓글 그대로.
+- `B0-probe.xml` 무결성 확인: well-formed(XML 파스), 마커 5종 기대값 그대로. **수정 불필요** — 대표님이 붙여넣으면 그대로 유효한 진단이 된다.
+- 가드 재실측: 이 런도 unbound(`...paperclip-run-unassigned-e4560d03-...`) → 댓글 POST **403** `cross_issue_influence_run_context_required` (`X-Paperclip-Run-Id` 헤더를 붙여도 동일). 서버 소스 확인: `run.contextSnapshot.issueId` 없으면 무조건 거부(`services/cross-issue-influence-limit.js`).
+- **치명 발견 — 카드 답변 웨이크 공백**: `JHL-1.assigneeAgentId = null`이면 카드 답변 시 웨이크가 **조용히 스킵**된다(`services/issue-thread-interactions.js`: `!wakeIssue.assigneeAgentId → continue`). 즉 **지금 대표님이 카드에 답하면 아무 일도 일어나지 않는다.** 또한 unassigned 이슈의 deferred 웨이크(JHL-1의 `issue_commented`, 10-17 17:20Z)도 release-drain에서 `handoffWakeIds`로 skip되어 계속 deferred로 남아 있다(diagnostics 확인).
+- **해결 조치(이 런이 예약)**: 자기 자신에 대한 **이슈-바운드 웨이크**를 걸었다 — `POST /agents/{me}/wakeup` {source: on_demand, triggerDetail: manual, reason: `issue_followup`, payload: {issueId: JHL-1}, idempotencyKey: `jhl1-followup-2026-10-18`}. `heartbeat.wakeup`이 `payload.issueId → contextSnapshot.issueId`로 승격하므로(`services/heartbeat.js`), 이 런 뒤에 뜨는 런은 **JHL-1에 바운드**되어 아래 체크리스트를 즉시 수행할 수 있다.
+
+### 다음 바운드 런 체크리스트 (이 순서대로)
+0. **최신 상태 재확인 먼저**: JHL-1 comment/interaction에 새 입력(카드 답변·댓글)이 있는지 GET으로 확인. 있으면 **그 입력을 우선** 처리하고 아래 (a)~(c)는 매트릭스에 맞게 조정.
+1. (a) JHL-1 PATCH: `assigneeAgentId = 10c1d2bf-76c6-4c3b-80e6-fe603925072e` **복원**(카드 웨이크 공백 제거), 상태는 카드가 pending이면 `in_review`로. (체크아웃은 하지 말 것 — `checkout→release`가 상태를 todo로 되돌리는 부작용이 있음. 댓글/PATCH는 checkout 없이 동작한다.)
+2. (b) 카드 `d7e796e3`이 아직 pending → JHL-1에 **댓글 (A) 게시**(위 (A) 텍스트 그대로, 맨 끝 괄호 주석 포함). 카드가 답변됐거나 새 댓글이 있으면 → 댓글 (A) 생략, 대표님 입력에 대한 응답으로 대체(아래 매트릭스).
+3. (c) JHL-4에 **댓글 (B) 게시**(크로스이슈 카운트 1/20 — 허용. `X-Paperclip-Run-Id` 헤더 필수). 게시 후 이슈 댓글 GET으로 반영 확인.
+4. (d) 확인 후 런 종료. 추가 웨이크 불필요.
+
+### 카드 `d7e796e3` 답변 처리 매트릭스 (다음 런용)
+- **① upload-result**: `ok-visible` → 업로드 정식 경로로 해결 → B0/variant 진행 중이었다면 되돌리기(v1 재적용) 안내 + Phase 1-B 다음 단계로. `ok-empty` → 업로드 경로는 유효하나 위젯 여전히 없음 → ② 결과로 분기. `rejected` → '기타' 문구 그대로 인용 기록, B0는 붙여넣기 경로로. `skipped` → ②로.
+- **② b0-probe**: `marker-base` → 이 블로그는 손 붙여넣기 테마에서 위젯 렌더 OK → 결함은 우리 테마 구조 안 → SEO Engineer에 B1 bisect 착수 지시(PLAN §4 변형 파일 제작). `marker-fresh` → 새 위젯 id까지 인스턴스화 — 유사 분기(Engineer). `default-only` → 기본 마크업만 렌더 → includable/세대 문제 의심(Engineer). `nothing` → 손 붙여넣기 테마 전반 불가 → v2-decl을 **정식 업로드로 재시도** → 거부 시 Blogger 지원 경로(PLAN §5) + 장기적으로 Contempo 기반 재구성 검토. `skipped2` → 재요청.
+- **③ screenshot**: `yes` → 첨부 가져와 레이아웃 분석(위젯 상자 유무·오류 문구). `later` → 진행.
+- **④ parallel-content**: `parallel-yes` → GitHub 연결 카드 `4fc4fe0d`가 이미 pending → 그 카드 연결 안내(이미지 호스팅) + 첫 글 파일럿 절차 게시. `theme-first` → 현 경로 계속.
+- '기타' 자유 텍스트는 **항상 그대로 인용**해 이슈에 기록.
+
+### 정리 권고(다음 유효 런에서 Engineer와 합의 후)
+- JHL-4의 pending 카드 `c0483a9b`("2건 완료?" — '테마 업로드 v1' 항목이 현 경로와 불일치): 문구 갱신 또는 취소 검토. **OAuth JSON 저장 항목은 유지 가치 있음**(발행 파이프라인). GitHub 연결 카드 `4fc4fe0d`는 유지.
