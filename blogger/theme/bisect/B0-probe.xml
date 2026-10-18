@@ -24,17 +24,30 @@
   cannot: "the blog will not render widgets for any hand-pasted theme" from "the
   blog will not instantiate NEW widgets, only re-map known ids".
 
-  Signals to look for on the live page after pasting:
-    1. "B0-MARKER-WIDGET-RENDERED"      -> a widget with a custom includable renders
-    2. the Blog widget's own default markup (a post list, or Blogger's
-       "no posts" message)             -> Blogger renders the layout at all
-    3. "B0-PROBE-FRESH-WIDGET-RENDERED" or "B0-PROBE-FRESH-CONTENT"
-                                       -> brand-new widget ids instantiate too
-       (absent while 1 or 2 show)      -> only pre-existing ids get re-mapped
-  Both absent  -> this blog cannot render widgets for a hand-pasted theme; stop
-                  bisecting the theme file and follow PLAN.md step 4.
-  Marker shown -> the blog renders widgets fine; the fault is in the real theme's
-                  structure, and PLAN.md step 4 (B1 variants) applies.
+  Reviewed 2026-10-18 by the SEO engineer, now that the markers are read by machine
+  (verify_applied.py, bisect mode) instead of by eye. Two changes to that design:
+    - B0-EXISTING-ID-WIDGET-RENDERED was added inside HTML1's *markup*.
+      'B0-HTML-WIDGET-RENDERED' is a widget *setting*, and for an id the layout
+      already knows, Blogger can render the widget with the layout's own stored text
+      instead of the one below — so a missing setting proves nothing about whether
+      the widget rendered at all. A markup marker cannot be substituted that way.
+    - the markers are ordered so each class can be read on its own:
+      theme served > existing-id widget renders > fresh-id widget renders.
+
+  Signals to look for on the live page after pasting (or read with the bisect mode):
+    1.  "B0-MARKER-WIDGET-RENDERED"       -> a widget with a custom includable renders
+    1b. "B0-EXISTING-ID-WIDGET-RENDERED"  -> a widget whose id the layout already holds
+                                            renders (markup, not a setting)
+    2.  the Blog widget's own default markup (a post list, or Blogger's "no posts"
+        message)                          -> Blogger renders the layout at all
+    3.  "B0-PROBE-FRESH-WIDGET-RENDERED" / "B0-PROBE-FRESH-CONTENT" /
+        "B0-PROBE-BARE-FRESH-CONTENT"      -> brand-new widget ids instantiate too
+        (absent while 1 or 2 show)        -> only pre-existing ids get re-mapped
+  Nothing at all (not even the yellow note) -> the paste did not land; re-paste.
+  Note but no marker -> this blog cannot render widgets for a hand-pasted theme;
+                       stop bisecting the theme file and follow PLAN.md step 5.
+  Marker shown       -> the blog renders widgets fine; the fault is in the real
+                       theme's structure, and PLAN.md step 4 (B1 variants) applies.
 -->
 <html b:version='2' b:responsive='true' class='v2' expr:dir='data:blog.languageDirection' lang='en' xmlns='http://www.w3.org/1999/xhtml' xmlns:b='http://www.google.com/2005/gml/b' xmlns:data='http://www.google.com/2005/gml/data' xmlns:expr='http://www.google.com/2005/gml/expr'>
 <head>
@@ -72,6 +85,7 @@ body { margin: 0 auto; max-width: 40rem; padding: 1rem; font: 16px/1.6 system-ui
         <b:if cond='data:title != &quot;&quot;'>
           <p class='widget-title'><data:title/></p>
         </b:if>
+        <p class='b0-existing'>B0-EXISTING-ID-WIDGET-RENDERED</p>
         <data:content/>
       </div>
     </b:includable>

@@ -13,6 +13,7 @@ work on the homepage even before the first post is published.
 Usage:
     python blogger/theme/verify_applied.py                       # homepage from config.json
     python blogger/theme/verify_applied.py --url <post url>      # a guide page (item)
+    python blogger/theme/verify_applied.py --bisect              # read the B0-probe markers
 Exit codes:
     0  theme v1 is live, its widgets render, and its SEO tags are correct
     1  theme v1 is live but something is wrong with the SEO output
@@ -20,6 +21,8 @@ Exit codes:
        'no-items' div) — the blog's layout has not been rebuilt against the theme
     5  the theme serves desktop but Blogger's stock template still serves ?m=1
        (mobile-first requirement)
+    6  --bisect: the B0-probe theme is served but not one widget rendered, so the blog
+       (not the file) is the obstacle
     3  the current theme file is not what the blog serves: the page is either still on a
        stock theme, or on an older generation of ours (see check [1b])
     2  the page could not be fetched
@@ -65,6 +68,25 @@ BLOGGER_SEO = [
 ]
 
 AD_SLOTS_INDEX = ("ad-top", "ad-bottom")
+
+# ---- bisect probe (blogger/theme/bisect/B0-probe.xml) -------------------------------
+# Step 3 of bisect/PLAN.md pastes a throwaway theme whose only job is to separate "this
+# theme cannot render" from "this blog cannot render widgets at all". The owner reports
+# what he sees by eye; these markers let the same verdict be measured, so the next round
+# does not depend on a screenshot.
+#
+# (marker, meaning, wants_fresh_id)
+BISECT_MARKERS = [
+    ("B0-NOTE-THEME-SERVED", "the pasted diagnostic theme is served at all", False),
+    ("B0-MARKER-WIDGET-RENDERED", "a widget with our own includable rendered (existing id)", False),
+    ("B0-EXISTING-ID-WIDGET-RENDERED", "an existing-id widget rendered its own markup", False),
+    ("B0-HTML-WIDGET-RENDERED", "an HTML widget rendered its setting content (existing id)", False),
+    ("B0-PROBE-FRESH-WIDGET-RENDERED", "a widget with a brand-new id rendered", True),
+    ("B0-PROBE-FRESH-CONTENT", "a brand-new widget's setting was rendered", True),
+    ("B0-PROBE-BARE-FRESH-CONTENT", "a brand-new bare widget rendered via default markup", True),
+]
+BISECT_THEME_SIGNS = (r"\bb0-note\b", r"\bb0-marker\b", r"\bb0-probe\b", r"\bb0-html\b",
+                      r"\bb0-existing\b")
 
 # Blogger's own mobile fallback template, served on ?m=1 until the theme declares
 # b:responsive='true'. These section ids exist only in that stock template.
@@ -139,6 +161,71 @@ def fetch(url: str) -> str:
     req = urllib.request.Request(url, headers={"User-Agent": UA})
     with urllib.request.urlopen(req, timeout=45) as resp:
         return resp.read().decode("utf-8", "replace")
+
+
+def bisect_report(html_text: str, url: str) -> int:
+    """Measure the B0-probe markers on the live page and print the PLAN.md verdict.
+
+    Exit 0 = the diagnostic theme is serving AND at least the base marker rendered
+    (the blog renders widgets for a hand-pasted theme — bisect our theme next).
+    Exit 6 = the diagnostic theme is serving but nothing rendered (blog/layout problem).
+    Exit 3 = the page is not the diagnostic theme at all (the paste did not land, or the
+    theme is still an older copy of ours).
+    """
+    markup = SCRIPT_RE.sub("", html_text)
+    print(f"URL: {url}\npage size: {len(html_text)} chars\n")
+    print("[B] B0-probe markers (blogger/theme/bisect/B0-probe.xml)")
+
+    theme_served = any(re.search(p, markup, re.I) for p in BISECT_THEME_SIGNS)
+    if not theme_served:
+        print("  MISSING  the diagnostic theme is not in this page (no b0-* markers at all)")
+        print("\nRESULT: this page is not the B0-probe theme.")
+        print("        Either the paste did not land, or the page you fetched is cached.")
+        print("        In Theme -> Edit HTML: Ctrl+A, Delete, paste the file, Save, then")
+        print("        reload the blog with Ctrl+F5 and re-run this script.")
+        return 3
+    print("  FOUND    the diagnostic theme is served (b0-* markers present)")
+
+    present: dict[str, bool] = {}
+    for marker, meaning, _fresh in BISECT_MARKERS:
+        if marker == "B0-NOTE-THEME-SERVED":
+            present[marker] = theme_served
+            continue
+        present[marker] = marker in markup
+        print(f"  {'FOUND   ' if present[marker] else 'MISSING '} {marker:32} {meaning}")
+
+    base = present["B0-MARKER-WIDGET-RENDERED"] or present["B0-EXISTING-ID-WIDGET-RENDERED"]
+    existing_html = present["B0-HTML-WIDGET-RENDERED"]
+    fresh = [m for m, _d, wants_fresh in BISECT_MARKERS
+             if wants_fresh and present[m]]
+    fresh_any = bool(fresh)
+
+    print()
+    if fresh_any:
+        print(f"RESULT: this blog renders widgets for a hand-pasted theme AND instantiates new ids")
+        print(f"        (rendered: {', '.join(fresh)}).")
+        print("        So the layout is not the obstacle — the fault is inside the real theme's")
+        print("        structure. Next: paste blogger/theme/owners-handbook-v3-decl.xml (the")
+        print("        Layouts v3 declaration surface), then the v3-tags variant, then bisect")
+        print("        the theme's own blocks (PLAN.md step 4).")
+        return 0
+    if base or existing_html:
+        print("RESULT: existing widget ids render, but brand-new ids do NOT.")
+        printed = "B0-MARKER-WIDGET-RENDERED" if base else "B0-HTML-WIDGET-RENDERED"
+        print(f"        (rendered: {printed})")
+        print("        So Blogger re-maps the ids this layout already knows and refuses to")
+        print("        create new widget instances here. Next: paste")
+        print("        blogger/theme/owners-handbook-v3-decl.xml (declaration surface), and if")
+        print("        that is empty too, treat this as a layout-side limit: the blog needs")
+        print("        Layout -> Save arrangement, a built-in theme round trip, or support.")
+        return 0
+    print("RESULT: the diagnostic theme is served, but NO widget produced markup — not even")
+    print("        the base marker or Blogger's own 'no posts' output.")
+    print("        So this blog does not render widgets for a hand-pasted theme. The theme")
+    print("        file is not the fault: the layout must be rebuilt from a theme applied")
+    print("        through Blogger's own path (PLAN.md step 5) — paste a built-in theme")
+    print("        (Contempo), confirm its widgets appear, then re-apply ours by upload.")
+    return 6
 
 
 def report(html_text: str, url: str, mobile_html: str | None = None) -> int:
@@ -290,22 +377,25 @@ def report(html_text: str, url: str, mobile_html: str | None = None) -> int:
         print("          1. Blogger -> Layout: confirm the widget boxes exist, then click")
         print("             'Save arrangement' (정렬 저장) once.")
         if generation_current:
-            print("          2. Apply blogger/theme/owners-handbook-v2-decl.xml — the declaration-")
-            print("             only variant of the live file (b:defaultwidgetversion='2', every")
-            print("             widget version='2' visible='true', named sections). Upload it, or")
-            print("             paste it exactly like before.")
-            print("             (Re-pasting owners-handbook-v1.xml changes nothing — the served")
-            print("             page already is that file, check [1b].)")
-            print("          3. Still empty? Paste blogger/theme/bisect/B0-baseline.xml (see its")
-            print("             PLAN.md): a 3-section/3-widget theme that separates 'this theme'")
-            print("             from 'this blog'.")
-            print("          4. If B0 renders its widgets, bisect this theme's blocks (PLAN.md")
-            print("             step 4); if it does not, the layout is the problem, not the file.")
+            print("          2. Apply blogger/theme/owners-handbook-v3-decl.xml — the Layouts v3")
+            print("             declaration surface (b:layoutsVersion='3' + <b:defaultmarkups>)")
+            print("             over the current file. Every working third-party theme we could")
+            print("             check declares exactly this; ours is the only one that does not.")
+            print("             Upload it, or paste it exactly like before.")
+            print("             (owners-handbook-v2-decl.xml is the same file without the v3")
+            print("             surface; re-pasting owners-handbook-v1.xml changes nothing — the")
+            print("             served page already carries those declarations, see [1b].)")
+            print("          3. Still empty? Paste blogger/theme/bisect/B0-probe.xml and re-run")
+            print("             this script with --bisect (PLAN.md step 3): it separates 'this")
+            print("             theme' from 'this blog' and its verdict is measured, not eyeballed.")
+            print("          4. If B0 renders, bisect this theme's blocks (PLAN.md step 4) — and try")
+            print("             owners-handbook-v3-tags.xml (same + v3 data model) on the way.")
+            print("          5. If B0 renders nothing, the layout is the problem, not the file.")
         else:
             print("          2. Re-apply the current theme file (Edit HTML -> replace all ->")
             print("             Save) — the served page is an older generation (check [1b]).")
-            print("          3. Still empty? Paste blogger/theme/bisect/B0-baseline.xml (see its")
-            print("             PLAN.md) to prove whether any custom theme can render widgets here.")
+            print("          3. Still empty? Paste blogger/theme/bisect/B0-probe.xml and re-run")
+            print("             this script with --bisect (PLAN.md step 3).")
         for f in widget_failures:
             print(f"        - {f}")
         return 4
@@ -347,12 +437,16 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Verify that theme v1 is applied to the live blog and its SEO tags are correct")
     parser.add_argument("--url", default=cfg["blog"]["blogspotUrl"] + "/")
+    parser.add_argument("--bisect", action="store_true",
+                        help="measure the B0-probe markers instead (PLAN.md step 3)")
     args = parser.parse_args()
     try:
         html_text = fetch(args.url)
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:
         print(f"Could not fetch {args.url}: {exc}")
         return 2
+    if args.bisect:
+        return bisect_report(html_text, args.url)
     try:
         mobile_html = fetch(mobile_url(args.url))
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as exc:

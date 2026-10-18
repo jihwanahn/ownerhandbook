@@ -321,10 +321,11 @@ without a name), the guide-drift guard, and the `--check` mode.
 
 1. ~~Blogger theme upload~~ — **applied and verified** (section 6), the served copy is the
    current file (section 8, check `[1b]`), and the mobile slot is on the theme (check `[6]`).
-   What is still open is the widget rendering itself (sections 7–9). The owner's next steps,
-   in order: **one Layout save → apply `owners-handbook-v2-decl.xml` (upload, or the manual
-   paste) → `bisect/B0-baseline.xml` if it is still empty**; `verify_applied.py` judges each
-   step (exit 0 = done).
+   What is still open is the widget rendering itself (sections 7–10). The owner's next steps,
+   in order: **one Layout save / built-in theme round-trip → apply
+   `owners-handbook-v3-decl.xml` (upload, or the manual paste) → `bisect/B0-probe.xml` if it
+   is still empty**; `verify_applied.py` judges each step (exit 0 = done), and
+   `verify_applied.py --bisect` judges the probe step.
 2. **Publishing anything public** — deliberately out of scope until the owner reviews
    a draft; the tool refuses without `--confirm-owner-approved`, and the live smoke test
    verified that refusal on the real API.
@@ -332,3 +333,66 @@ without a name), the guide-drift guard, and the `--check` mode.
    waits for image hosting (`assets.publicBaseUrl`), because the gate refuses a post
    whose image URLs are unresolved. The smoke test used a placeholder base on a draft
    that was deleted in the same run, so no broken image ever reached a reader.
+
+---
+
+## 10. Layouts v3 declaration surface + the bisect probe (2026-10-18)
+
+Directed by the chief of staff (comment `5951a544`): the live page is our theme, the layouts
+are known to Blogger, and **no widget markup is produced at all**. Two deliverables were
+asked for — fold `B0-probe.xml` into the verifier/tests, and prepare a two-file v3 variant —
+plus one change to the validator's `b:layoutsVersion='3'` rule.
+
+### Files
+
+| File | What it is | Checks |
+| --- | --- | --- |
+| `blogger/theme/owners-handbook-v3-decl.xml` | v2-decl + `b:layoutsVersion='3'` + `<head><b:defaultmarkups>` (17 widget types, intentionally empty). Nothing else moves. | 57 |
+| `blogger/theme/owners-handbook-v3-tags.xml` | the above + the data-tag model mapped to v3 (second variable, isolated) | 59 |
+| `blogger/theme/v3_variant.py` | derives both from `owners-handbook-v2-decl.xml`; `--check` (exit 1 when stale) | — |
+| `blogger/theme/bisect/B0-probe.xml` | the diagnostic theme + two fresh-id probes, reviewed and amended | — |
+
+**Grounding.** Every mapped token was checked against real, working v3 themes
+(`vtrick 1.9.0`, `tech-jet-core-12-21`, `jobzeek`) — no guessed tag. Where no grounded v3
+counterpart exists, the tag is replaced by literal text (`LITERAL_REPLACEMENTS`: e.g.
+`Filed under:`), never by an invented token. v2-only tokens (`blog.pageType`,
+`blog.pageName`, `blog.postImageThumbnailUrl`, `post.timestampISO8601`, `post.numComments`)
+are forbidden in the tags variant and the validator enforces it.
+
+### Proof, not prose
+
+- `python blogger/theme/v3_variant.py --check` → exit 0:
+  `OK: v3-decl == v2-decl + layoutsVersion/defaultmarkups, v3-tags == v3-decl + grounded data-tag mapping`
+- Tests are written on the *stripped* texts (declarations removed / data tags replaced), so
+  "only the declarations moved" is enforced by the test suite, not by a claim.
+- `[2c]`/`[2d]` now judge the declaration surface per generation: a v1/v2 file must **not**
+  carry `b:layoutsVersion='3'`; a v3 file must carry it **with** `<b:defaultmarkups>` inside
+  `<head>`, one empty block per widget type the file actually uses. The pair is the
+  exception, never the token alone — the raw token is still rejected (regression test kept).
+
+### Bugs found by running the tools
+
+1. **`<b:defaultmarkups>` inside a comment ate half the file.** The theme's own header comment
+   mentions the tag while explaining it, so a loose `<b:defaultmarkups>.*?</b:defaultmarkups>`
+   pattern started matching inside the comment and deleted ~15 kB (body, widgets, footer) —
+   the "declarations only" proof silently compared the wrong text. Both the stripper and the
+   test now anchor the block to the start of a line, and the ordering (block first, then the
+   comment) is required because removing the comment first re-indents the tag out of anchor
+   range.
+2. **`--bisect` markers must be markup, not settings.** For a widget id the layout already
+   holds, Blogger can render the widget with the layout's *stored* text, so a missing setting
+   proves nothing. The probe now also carries a markup marker inside `HTML1`
+   (`B0-EXISTING-ID-WIDGET-RENDERED`), and a test pins it inside the includable.
+3. **A `--bisect` inserted into an XML comment** — `--` is illegal in XML comments. XML
+   well-formedness now runs over both bisect files in the test suite (this caught it).
+
+### Verification
+
+- `npm run verify:all` → **exit 0** (Astro SEO + theme v1 **48** + v2-decl **52** +
+  v3-decl **57** + v3-tags **59** + pipeline **84** tests + images 4/4)
+- `verify_applied.py` → **exit 4** live (theme applied, mobile slot on our theme, widgets
+  still 0 — unchanged pre-experiment state, as expected)
+- `verify_applied.py --bisect` → verdicts exercised offline against fixtures for all four
+  branches (fresh probes / existing-id only / theme-served-only / older theme still served)
+- No publication of any kind, no secret outside its local file, no spending, no AdSense or
+  hiring touched.

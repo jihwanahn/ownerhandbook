@@ -108,21 +108,30 @@ non-kebab image filenames, missing `loading="lazy"`.
 ## Tests
 
 ```bash
-python blogger/tests/test_pipeline.py                 # 61 offline tests, no network
+python blogger/tests/test_pipeline.py                 # 84 offline tests, no network
 python blogger/theme/verify_theme.py blogger/theme/owners-handbook-v1.xml \
-                                     blogger/theme/owners-handbook-v2-decl.xml   # 45 + 49 checks
-python blogger/theme/decl_variant.py --check          # the two theme files differ in declarations only
+                                     blogger/theme/owners-handbook-v2-decl.xml \
+                                     blogger/theme/owners-handbook-v3-decl.xml \
+                                     blogger/theme/owners-handbook-v3-tags.xml   # 48 + 52 + 57 + 59
+python blogger/theme/decl_variant.py --check          # declarations only (v1 -> v2-decl)
+python blogger/theme/v3_variant.py --check            # v3 surface only, then data tags only
 python blogger/theme/verify_applied.py                # theme live? widgets rendering? SEO tags? (reads the public page)
+python blogger/theme/verify_applied.py --bisect       # reads the B0-probe markers and prints the verdict
 python blogger/images/optimize_images.py check        # image rules
 python blogger/tests/smoke_live.py --run              # live write path (writes 1 throwaway draft)
 ```
 
-Two theme files ship, and the difference between them is the experiment (see
-`tests/RESULTS.md` §9): `owners-handbook-v1.xml` is what the blog serves today;
-`owners-handbook-v2-decl.xml` is v1 with the widget/section **declarations** modernised
-(`b:defaultwidgetversion='2'`, widgets `version='2' visible='true'`, named sections).
-`decl_variant.py` derives the second from the first — never edit it by hand — and a test
-proves that stripping the declaration attributes from both files yields identical text.
+Four theme files ship, and each step between them is one variable (see `tests/RESULTS.md`
+§9–§10): `owners-handbook-v1.xml` is what the blog serves today; `owners-handbook-v2-decl.xml`
+modernises the widget/section **declarations** (`b:defaultwidgetversion='2'`, widgets
+`version='2' visible='true'`, named sections); `owners-handbook-v3-decl.xml` adds the
+**Layouts v3 declaration surface** (`b:layoutsVersion='3'` + an empty
+`<b:defaultmarkups>` block per widget type); `owners-handbook-v3-tags.xml` then maps the
+**data-tag model** to v3. v3 tags are only ever taken from real working v3 themes — where no
+grounded counterpart exists the tag becomes literal text, never a guess.
+`decl_variant.py` and `v3_variant.py` derive each file from the one before it — never edit
+them by hand — and tests prove that stripping the declaration attributes (or the mapped data
+tags) yields identical text.
 `verify_theme.py` validates each file separately (any number of paths may be given).
 
 `test_pipeline.py` never touches the network or the credentials, so it runs anywhere.

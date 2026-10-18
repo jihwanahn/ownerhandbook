@@ -11,11 +11,15 @@ uploads the file:
      widget resolves to an includable that the same widget defines (a dangling
      include is the #1 cause of an upload rejection).
   2c. The widget/section *declaration generation* is internally consistent: one
-     uniform widget version, no v3 layout token, and — when the theme targets
-     widget generation 2 — explicit visible= on every widget and a Layout name
-     on every section.
-  4. Only data tags from the classic Layouts v2 model are used — v3-only tags
-     are rejected here instead of by Blogger's validator.
+     uniform widget version, and — when the theme targets widget generation 2 —
+     explicit visible= on every widget and a Layout name on every section.
+  2d. The Layouts v3 declaration surface, when the file declares it: the token
+     travels with <b:defaultmarkups> and a widget-type block for every widget type
+     the theme uses. (v3_variant.py derives those files; the surface is what every
+     working third-party theme we could check declares.)
+  4. Only data tags from a declared model are used: the classic Layouts v2 set for
+     v1/v2 files, the grounded v3 set for the v3 variants. A file that mixes the two
+     models without saying so fails here.
   5. Section/widget ids are unique and well formed; widgets live in sections.
   6. Attributes are single quoted (Blogger is strict about this).
   7. Feature requirements from JHL-4 §1: figure/figcaption styling, three
@@ -44,6 +48,25 @@ EXPR = "{http://www.google.com/2005/gml/expr}"
 
 DEFAULT_THEME = os.path.join(os.path.dirname(os.path.abspath(__file__)), "owners-handbook-v1.xml")
 
+# v3_variant.py owns the v3 token tables and the derivation of the v3 files; importing
+# them here keeps one source of truth for "which tokens belong to which data model".
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import v3_variant  # noqa: E402  (path setup above is deliberate)
+
+# Grounded Layouts v3 data tags (every one of these appears in a working v3 theme:
+# vtrick 1.9.0, tech-jet 2.8.2 or jobzeek — see TAG_MAP in v3_variant.py).
+V3_DATA_TAGS = {
+    "view.title", "view.url.canonical", "view.isHomepage", "view.isMultipleItems",
+    "view.isPost", "view.featuredImage", "blog.locale.language", "messages.newer",
+    "messages.older", "messages.postAComment",
+    "post.date", "post.date.iso8601", "post.lastUpdated.iso8601", "post.author.name",
+    "post.numberOfComments", "post.snippets.long", "post.snippets.short",
+    "widgets.Blog.first.posts[0].featuredImage",
+}
+
+DATA_TOKEN_RE = re.compile(r"data:([A-Za-z0-9_.\[\]]+)")
+DATA_MODEL_RE = re.compile(r"DATA MODEL:\s*([^\n*]+)")
+
 # Classic Layouts v2 data tags. Anything outside this list must be justified
 # against an uploaded production theme before it is added here.
 ALLOWED_DATA_TAGS = {
@@ -67,6 +90,7 @@ ALLOWED_DATA_TAGS = {
     "link.href", "link.title",
     # pager
     "newerPageUrl", "newerPageTitle", "olderPageUrl", "olderPageTitle", "homeMsg",
+    "posts",
     # platform messages
     "postCommentMsg", "blogCommentMessage", "blogTeamBlogMessage", "postLabelsLabel",
     "widget.instanceId",
@@ -162,10 +186,11 @@ def main(path: str) -> int:
           "<html> declares b:responsive='true' (mobile uses this theme, not the fallback)")
 
     print("\n[2c] Widget/section declaration generation")
-    # Two themes ship in this repo: owners-handbook-v1.xml (what the blog serves today) and
-    # owners-handbook-v2-decl.xml (v1 with the declaration generation modernised — see
-    # decl_variant.py). The invariants below hold for either, and they fire on the variant:
-    # a mixed-generation file is exactly the state that produced the live render skip.
+    # Several themes ship in this repo: owners-handbook-v1.xml (the original live file),
+    # owners-handbook-v2-decl.xml (v1 with the widget declaration generation modernised),
+    # and the two Layouts v3 variants derived by v3_variant.py. The invariants below hold
+    # for all of them; a mixed-generation file is exactly the state that produced the live
+    # render skip.
     decl_widgets = list(root.iter(f"{B}widget"))
     decl_sections = list(root.iter(f"{B}section"))
     generation = root.get(f"{B}defaultwidgetversion")
@@ -175,9 +200,14 @@ def main(path: str) -> int:
     widget_versions = sorted({(w.get("version") or "") for w in decl_widgets})
     check(len(widget_versions) == 1 and widget_versions[0] in ("1", "2"),
           "every widget declares one uniform, valid version token", str(widget_versions))
-    check(root.get(f"{B}layoutsVersion") is None,
-          "no b:layoutsVersion='3' (these data tags are written for the v2 model)",
-          str(root.get(f"{B}layoutsVersion")))
+    # b:layoutsVersion='3' is a v3-only token: every working v3 theme pairs it with
+    # <b:defaultmarkups>, and a v2-model file must not carry it. The v3 variants are the
+    # single, declared exception — see [2d].
+    default_markups = list(root.iter(f"{B}defaultmarkups"))
+    layouts_version = root.get(f"{B}layoutsVersion")
+    check(layouts_version is None or (layouts_version == "3" and default_markups),
+          "b:layoutsVersion='3' appears only with <b:defaultmarkups> (v3 variant exception)",
+          f"layoutsVersion={layouts_version!r}, defaultmarkups blocks={len(default_markups)}")
     visible_values = [w.get("visible") for w in decl_widgets if w.get("visible") is not None]
     check(set(visible_values) <= {"true", "false"},
           "visible= is a real boolean wherever it appears", str(set(visible_values)))
@@ -195,6 +225,36 @@ def main(path: str) -> int:
         section_names = [s.get("name") for s in decl_sections]
         check(all(section_names) and len(set(section_names)) == len(section_names),
               "generation-2 sections carry unique Layout names", str(section_names))
+
+    print("\n[2d] Layouts v3 declaration surface (v3 variants only)")
+    if not layouts_version:
+        check(not default_markups,
+              "no <b:defaultmarkups> without b:layoutsVersion='3'",
+              f"{len(default_markups)} block(s) with no v3 token")
+        print("        this file declares the v2 model — v3 surface checks skipped")
+    else:
+        blocks = list(root.iter(f"{B}defaultmarkup"))
+        types = [b.get("type") for b in blocks]
+        used_types = sorted({(w.get("type") or "") for w in decl_widgets})
+        check(generation == "2",
+              "the v3 declaration keeps b:defaultwidgetversion='2'", str(generation))
+        check(len(default_markups) == 1, "exactly one <b:defaultmarkups> block",
+              f"found {len(default_markups)}")
+        check(len(blocks) >= 13, "the widget-type surface declares at least 13 blocks",
+              f"found {len(blocks)}")
+        check(all(types) and len(set(types)) == len(types),
+              "every defaultmarkup names a unique widget type", str(types))
+        missing = [t for t in used_types if t not in set(types)]
+        check(not missing, "every widget type this theme uses has a defaultmarkup block",
+              f"missing {missing} of {used_types}")
+        check(all(len(list(b)) == 0 and not (b.text or "").strip() for b in blocks),
+              "the blocks are empty by design (every widget supplies its own includables)")
+        parent = None
+        if default_markups:
+            parent = next((p for p in root.iter() if default_markups[0] in list(p)), None)
+        parent_tag = parent.tag if parent is not None else ""
+        check(parent_tag == "head" or parent_tag.endswith("}head"),
+              "<b:defaultmarkups> sits inside <head>", parent_tag or "not found")
 
     print("\n[3] Widgets, sections and includables")
     widgets = list(root.iter(f"{B}widget"))
@@ -231,11 +291,39 @@ def main(path: str) -> int:
     check(not missing_main, "every widget defines an includable id='main'", str(missing_main))
     check(not dangling, "every <b:include> resolves inside its widget", str(dangling))
 
-    print("\n[4] Data tags are limited to the classic Layouts v2 model")
-    used = sorted(set(re.findall(r"<data:([A-Za-z0-9_.]+)", raw)))
-    unknown = [t for t in used if t not in ALLOWED_DATA_TAGS]
-    check(not unknown, "no unknown/v3-only data tags", str(unknown))
+    print("\n[4] Data tags are limited to a declared data model")
+    used = sorted(set(DATA_TOKEN_RE.findall(raw)))
+    unknown = [t for t in used if t not in ALLOWED_DATA_TAGS and t not in V3_DATA_TAGS]
+    check(not unknown, "no unknown data tags", str(unknown))
     print(f"        {len(used)} distinct data tags in use")
+
+    print("\n[4b] Data model consistency")
+    # One model per file, unless the file says out loud that it is the deliberate probe
+    # (the v3 declaration variant keeps v2 tags to isolate the declaration surface).
+    model_match = DATA_MODEL_RE.search(raw)
+    model = model_match.group(1).strip() if model_match else ""
+    v2_only_used = sorted(t for t in used if t in v3_variant.V2_ONLY_TOKENS)
+    v3_only_used = sorted(t for t in used if t in V3_DATA_TAGS)
+    print(f"        declared model: {model or 'v2 (implied — no DATA MODEL line)'}")
+    print(f"        v3-only tokens in use: {v3_only_used or 'none'}")
+    if not layouts_version:
+        check(model == "", "a v2 file does not claim a DATA MODEL line", model)
+        check(not v3_only_used,
+              "a v2-model file uses no v3-only data tags", str(v3_only_used))
+    elif "deliberate probe" in model:
+        # The declaration variant: v3 surface, v2 tags, on purpose — and that is the whole
+        # point of the file, so it must NOT quietly look modern.
+        check(bool(v2_only_used),
+              "the declaration probe keeps its v2 data tags (mixing is the variable)",
+              "it no longer looks like a probe — regenerate with v3_variant.py")
+    else:
+        check(not v2_only_used,
+              "a v3 data model file carries no v2-only data tags", str(v2_only_used))
+        check("v3" in model, "a v3 tag file declares 'DATA MODEL: v3'", model or "missing")
+        missing_v3 = [t for t in v3_variant.V3_TOKENS_USED
+                      if t not in used]
+        check(not missing_v3, "the v3 tag file actually uses the v3 tokens it claims",
+              str(missing_v3))
 
     print("\n[5] Attribute quoting")
     # Blogger requires single quotes on tag attributes. Everything inside
@@ -278,13 +366,17 @@ def main(path: str) -> int:
     check("<b:section" in raw, "sections present for widget editing")
 
     print("\n[7] Structure against the live blogspot theme")
-    for needle, label in (
-        ("data:blog.pageType == &quot;index&quot;", "index vs item branch"),
-        ("data:blog.postImageThumbnailUrl", "per-post social image"),
-        ("application/ld+json", "Article structured data"),
-        ("site-title", "site title element"),
+    # Two data models ship in this repo, so each structural requirement is spelled in both
+    # (the v2 form for v1/v2-decl, the v3 form for the v3 variants).
+    for needles, label in (
+        (("data:blog.pageType == &quot;index&quot;", "data:view.isMultipleItems"),
+         "index vs item branch"),
+        (("data:blog.postImageThumbnailUrl", "posts[0].featuredImage"),
+         "per-post social image"),
+        (("application/ld+json",), "Article structured data"),
+        (("site-title",), "site title element"),
     ):
-        check(needle in raw, label)
+        check(any(n in raw for n in needles), label, f"none of {needles}")
 
     print()
     if failures:

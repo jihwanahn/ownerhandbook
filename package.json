@@ -12,8 +12,8 @@
     "og:image": "node scripts/generate-og-image.mjs",
     "astro": "astro",
     "rename": "node scripts/rename-site.mjs",
-    "theme:check": "python blogger/theme/verify_theme.py blogger/theme/owners-handbook-v1.xml blogger/theme/owners-handbook-v2-decl.xml",
-    "theme:decl": "python blogger/theme/decl_variant.py --check",
+    "theme:check": "python blogger/theme/verify_theme.py blogger/theme/owners-handbook-v1.xml blogger/theme/owners-handbook-v2-decl.xml blogger/theme/owners-handbook-v3-decl.xml blogger/theme/owners-handbook-v3-tags.xml",
+    "theme:decl": "python blogger/theme/decl_variant.py --check && python blogger/theme/v3_variant.py --check",
     "pipeline:test": "python blogger/tests/test_pipeline.py",
     "images:check": "python blogger/images/optimize_images.py check",
     "verify:all": "npm run verify && npm run theme:check && npm run theme:decl && npm run pipeline:test && npm run images:check"

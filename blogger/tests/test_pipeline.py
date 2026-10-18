@@ -11,6 +11,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -28,6 +29,7 @@ sys.path.insert(0, os.path.join(REPO, "blogger", "theme"))
 import blogger_api as api  # noqa: E402
 import decl_variant  # noqa: E402
 import md2blogger  # noqa: E402
+import v3_variant  # noqa: E402
 import verify_applied  # noqa: E402
 import verify_theme  # noqa: E402
 
@@ -35,6 +37,15 @@ GML_B = "{http://www.google.com/2005/gml/b}"
 THEME_DIR = os.path.join(REPO, "blogger", "theme")
 V1_THEME = os.path.join(THEME_DIR, "owners-handbook-v1.xml")
 V2_DECL_THEME = os.path.join(THEME_DIR, "owners-handbook-v2-decl.xml")
+V3_DECL_THEME = os.path.join(THEME_DIR, "owners-handbook-v3-decl.xml")
+V3_TAGS_THEME = os.path.join(THEME_DIR, "owners-handbook-v3-tags.xml")
+
+
+def theme_generation_tokens(path: str) -> set[str]:
+    """The <html> class tokens a theme file declares, read the way the live check reads
+    them (comments stripped — the files' own comments quote class='v2')."""
+    with open(path, encoding="utf-8") as fh:
+        return verify_applied.live_generation_tokens(fh.read())
 
 CFG = api.load_config()
 ASSETS = "https://example.github.io/owners-handbook-images"
@@ -396,8 +407,9 @@ class ThemeTests(unittest.TestCase):
         self.assertIn("uniform, valid version token", out)
 
     def test_validator_rejects_a_v3_layout_token(self):
-        """b:layoutsVersion='3' would be read by Blogger against v3-model data tags,
-        which this theme does not use."""
+        """b:layoutsVersion='3' without <b:defaultmarkups> is half a v3 declaration: every
+        working v3 theme pairs them, and the token alone would still be read against the
+        v2-model data tags this file uses. [2d] carries the variant-only exception."""
         with open(V2_DECL_THEME, encoding="utf-8") as fh:
             raw = fh.read()
         broken = raw.replace("b:defaultwidgetversion='2'", "b:defaultwidgetversion='2' b:layoutsVersion='3'", 1)
@@ -522,9 +534,10 @@ class AppliedThemeTests(unittest.TestCase):
         advice has to point at the declaration variant, the layout save and B0 instead."""
         code, out = self._run(EMPTY_WIDGET_PAGE)
         self.assertEqual(code, 4, out)
-        self.assertIn("Re-pasting owners-handbook-v1.xml changes nothing", out)
+        self.assertIn("owners-handbook-v1.xml changes nothing", out)
+        self.assertIn("owners-handbook-v3-decl.xml", out)
         self.assertIn("owners-handbook-v2-decl.xml", out)
-        self.assertIn("B0-baseline.xml", out)
+        self.assertIn("B0-probe.xml", out)
         self.assertNotIn("Re-apply the current theme file", out)
 
     def test_widget_failure_asks_for_a_re_paste_when_the_file_is_not_live(self):
@@ -669,6 +682,243 @@ class PathAndHostTests(unittest.TestCase):
             report = md2blogger.build_post_payload(path, CFG, ASSETS, None)
         self.assertTrue(report["source"])
         self.assertEqual(report["slug"], "llc-cost-breakdown")
+
+
+class V3VariantTests(unittest.TestCase):
+    """The Layouts v3 variants (v3_variant.py) and the declaration-surface checks [2c]/[2d].
+
+    Background: the live blog serves our theme and instantiates none of its widgets. Every
+    theme we could inspect that *does* render widgets (Blogger's stock templates, vtrick
+    1.9.0, tech-jet 2.8.2, jobzeek) declares b:layoutsVersion='3' plus <b:defaultmarkups>;
+    ours was the only one that did not. These tests pin the two derived files and the
+    invariant that each moves exactly one variable.
+    """
+
+    def _validate(self, path: str) -> tuple[int, str]:
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = verify_theme.main(path)
+        return code, buffer.getvalue()
+
+    def _theme_text(self, name: str) -> str:
+        with open(os.path.join(THEME_DIR, name), encoding="utf-8") as fh:
+            return fh.read()
+
+    def test_variant_check_mode_is_clean(self):
+        proc = subprocess.run([sys.executable, os.path.join(THEME_DIR, "v3_variant.py"),
+                               "--check"], capture_output=True, text=True)
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("v3-decl ==", proc.stdout)
+
+    def test_both_variants_are_well_formed_and_keep_the_blogger_namespaces(self):
+        for name in (V3_DECL_THEME, V3_TAGS_THEME):
+            with open(name, encoding="utf-8") as fh:
+                raw = fh.read()
+            root = ET.fromstring(raw)  # raises if the file is not well formed
+            self.assertTrue(root.tag.endswith("}html") or root.tag == "html", name)
+            self.assertIn("b:version='2'", raw)
+            self.assertIn("b:defaultwidgetversion='2'", raw)
+            self.assertIn("b:responsive='true'", raw)
+
+    def test_declaration_variant_moves_declarations_only(self):
+        """The whole point of the file: if it fails on the blog, one variable moved."""
+        source = self._theme_text("owners-handbook-v2-decl.xml")
+        decl = self._theme_text("owners-handbook-v3-decl.xml")
+        self.assertNotEqual(decl, source)
+        self.assertEqual(v3_variant.strip_declarations(decl), source)
+
+    def test_declaration_variant_declares_the_v3_surface_working_themes_have(self):
+        root = ET.fromstring(self._theme_text("owners-handbook-v3-decl.xml"))
+        self.assertEqual(root.get(f"{GML_B}layoutsVersion"), "3")
+        markups = list(root.iter(f"{GML_B}defaultmarkups"))
+        self.assertEqual(len(markups), 1)
+        blocks = list(root.iter(f"{GML_B}defaultmarkup"))
+        self.assertGreaterEqual(len(blocks), 13)
+        # Every widget this theme uses must be covered by the declared type surface.
+        used = {w.get("type") for w in root.iter(f"{GML_B}widget")}
+        declared = {b.get("type") for b in blocks}
+        self.assertTrue(used.issubset(declared), f"{used - declared}")
+        # The blocks are empty on purpose: each widget carries its own includables.
+        self.assertTrue(all(len(list(b)) == 0 for b in blocks))
+
+    def test_declaration_variant_keeps_the_v2_data_model(self):
+        """It isolates the declaration surface, so it must stay a *mixed* file and say so."""
+        decl = self._theme_text("owners-handbook-v3-decl.xml")
+        self.assertIn("DATA MODEL: v2 (deliberate probe)", decl)
+        self.assertTrue(v3_variant.remaining_v2_tags(decl))
+
+    def test_tags_variant_leaves_no_v2_only_token_behind(self):
+        tags = self._theme_text("owners-handbook-v3-tags.xml")
+        self.assertIn("DATA MODEL: v3", tags)
+        self.assertEqual(v3_variant.remaining_v2_tags(v3_variant.strip_tags_note(tags)), [])
+        used = set(verify_theme.DATA_TOKEN_RE.findall(tags))
+        missing = [t for t in v3_variant.V3_TOKENS_USED if t not in used]
+        self.assertEqual(missing, [])
+
+    def test_tags_variant_changes_nothing_but_data_tags(self):
+        """Every changed line has to be a data tag, a documented literal or the model line."""
+        decl = self._theme_text("owners-handbook-v3-decl.xml")
+        tags = self._theme_text("owners-handbook-v3-tags.xml")
+        self.assertEqual(v3_variant.undeclared_changes(decl, tags), [])
+
+    def test_tags_variant_needs_no_guessed_tags(self):
+        """Each mapped token is one a working v3 theme actually uses; the two tokens with no
+        counterpart became literal text instead of an invented tag."""
+        tags = self._theme_text("owners-handbook-v3-tags.xml")
+        self.assertIn("Filed under:", tags)
+        self.assertIn("Comments are moderated.", tags)
+        self.assertNotIn("<data:blogTeamBlogMessage/>", tags)
+
+    def test_every_theme_file_passes_the_offline_validator(self):
+        for name in ("owners-handbook-v1.xml", "owners-handbook-v2-decl.xml",
+                     "owners-handbook-v3-decl.xml", "owners-handbook-v3-tags.xml"):
+            code, out = self._validate(os.path.join(THEME_DIR, name))
+            self.assertEqual(code, 0, f"{name}\n{out}")
+
+    def test_all_theme_files_declare_the_same_html_class_tokens(self):
+        """verify_applied [1b] compares the live <html> class against the theme file, so the
+        files have to agree on it or the generation check gives different answers."""
+        tokens = {name: theme_generation_tokens(os.path.join(THEME_DIR, name))
+                  for name in ("owners-handbook-v1.xml", "owners-handbook-v2-decl.xml",
+                               "owners-handbook-v3-decl.xml", "owners-handbook-v3-tags.xml")}
+        self.assertEqual(len(set(map(frozenset, tokens.values()))), 1, tokens)
+        self.assertEqual(tokens["owners-handbook-v1.xml"], {"v2"})
+
+    def test_validator_flags_a_v3_surface_without_defaultmarkups(self):
+        """The exception is the pair, not the token."""
+        decl = self._theme_text("owners-handbook-v3-decl.xml")
+        broken = re.sub(r"^<b:defaultmarkups>\n.*?^</b:defaultmarkups>\n", "", decl,
+                        flags=re.S | re.M)
+        self.assertNotEqual(broken, decl)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "no-markups.xml")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(broken)
+            code, out = self._validate(path)
+        self.assertEqual(code, 1, out)
+        self.assertIn("b:layoutsVersion='3' appears only with", out)
+
+    def test_validator_flags_a_v2_token_sneaked_back_into_the_v3_tags_file(self):
+        tags = self._theme_text("owners-handbook-v3-tags.xml")
+        broken = tags.replace("data:post.numberOfComments", "data:post.numComments", 1)
+        self.assertNotEqual(broken, tags)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "mixed-tags.xml")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(broken)
+            code, out = self._validate(path)
+        self.assertEqual(code, 1, out)
+        self.assertIn("no v2-only data tags", out)
+
+    def test_validator_flags_a_v3_token_in_a_v2_file(self):
+        v2 = self._theme_text("owners-handbook-v2-decl.xml")
+        broken = v2.replace("<data:blog.title/>", "<data:view.title/>", 1)
+        self.assertNotEqual(broken, v2)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "v2-with-v3-token.xml")
+            with open(path, "w", encoding="utf-8") as fh:
+                fh.write(broken)
+            code, out = self._validate(path)
+        self.assertEqual(code, 1, out)
+        self.assertIn("no v3-only data tags", out)
+
+    def test_tag_map_evidence_is_recorded(self):
+        """Nothing gets mapped without a working theme to point at."""
+        for pattern, replacement, why in v3_variant.TAG_MAP:
+            self.assertTrue(pattern and replacement and why, (pattern, replacement))
+            self.assertTrue(any(name in why for name in
+                                ("vtrick", "jobzeek", "tech-jet", "no grounded", "illegal",
+                                 "cannot be an element")), why)
+
+
+class BisectProbeTests(unittest.TestCase):
+    """The B0 diagnostic theme and the measured reading of its markers."""
+
+    PROBE = os.path.join(THEME_DIR, "bisect", "B0-probe.xml")
+    BASELINE = os.path.join(THEME_DIR, "bisect", "B0-baseline.xml")
+
+    def _read(self, path: str) -> str:
+        with open(path, encoding="utf-8") as fh:
+            return fh.read()
+
+    def _bisect(self, html_text: str) -> tuple[int, str]:
+        buffer = io.StringIO()
+        with redirect_stdout(buffer):
+            code = verify_applied.bisect_report(html_text, "https://example.blogspot.com/")
+        return code, buffer.getvalue()
+
+    def test_bisect_files_are_well_formed_theme_documents(self):
+        expected_sections = {self.BASELINE: 3, self.PROBE: 4}  # probe adds the jhl-probe one
+        for path, sections in expected_sections.items():
+            root = ET.fromstring(self._read(path))
+            self.assertEqual(len(list(root.iter(f"{GML_B}section"))), sections, path)
+            self.assertGreaterEqual(len(list(root.iter(f"{GML_B}widget"))), 3, path)
+
+    def test_probe_keeps_the_ids_the_layout_already_holds(self):
+        root = ET.fromstring(self._read(self.PROBE))
+        self.assertEqual([s.get("id") for s in root.iter(f"{GML_B}section")],
+                         ["header", "main-posts", "footer", "jhl-probe"])
+        ids = [w.get("id") for w in root.iter(f"{GML_B}widget")]
+        self.assertIn("Header1", ids)   # existing ids: re-mapping path
+        self.assertIn("HTML99", ids)    # brand-new ids: instantiation path
+        self.assertIn("HTML98", ids)    # brand-new id with no includable: default path
+
+    def test_probe_carries_every_marker_the_checker_reads(self):
+        probe = self._read(self.PROBE)
+        for marker, _meaning, _fresh in verify_applied.BISECT_MARKERS:
+            if marker == "B0-NOTE-THEME-SERVED":
+                self.assertTrue(any(re.search(p, probe, re.I)
+                                    for p in verify_applied.BISECT_THEME_SIGNS), marker)
+                continue
+            self.assertIn(marker, probe)
+
+    def test_existing_id_marker_is_markup_not_a_setting(self):
+        """A widget *setting* can be replaced by the layout's stored value for an id the
+        layout knows, so a missing setting would prove nothing. The id marker is markup."""
+        probe = self._read(self.PROBE)
+        marker = probe.index("<p class='b0-existing'>B0-EXISTING-ID-WIDGET-RENDERED</p>")
+        # ... and it sits inside the widget's includable, after its settings block.
+        settings_end = probe.rindex("</b:widget-settings>", 0, marker)
+        self.assertIn("<b:includable", probe[settings_end:marker])
+
+    def test_verdict_when_both_id_classes_render(self):
+        code, out = self._bisect(self._read(self.PROBE))
+        self.assertEqual(code, 0, out)
+        self.assertIn("instantiates new ids", out)
+        self.assertIn("owners-handbook-v3-decl.xml", out)
+
+    def test_verdict_when_only_existing_ids_render(self):
+        probe = self._read(self.PROBE)
+        for marker in ("B0-PROBE-FRESH-WIDGET-RENDERED", "B0-PROBE-FRESH-CONTENT",
+                       "B0-PROBE-BARE-FRESH-CONTENT"):
+            probe = probe.replace(marker, "not-rendered")
+        code, out = self._bisect(probe)
+        self.assertEqual(code, 0, out)
+        self.assertIn("brand-new ids do NOT", out)
+
+    def test_verdict_when_the_theme_serves_but_no_widget_renders(self):
+        probe = self._read(self.PROBE)
+        for marker in ("B0-MARKER-WIDGET-RENDERED", "B0-EXISTING-ID-WIDGET-RENDERED",
+                       "B0-HTML-WIDGET-RENDERED", "B0-PROBE-FRESH-WIDGET-RENDERED",
+                       "B0-PROBE-FRESH-CONTENT", "B0-PROBE-BARE-FRESH-CONTENT"):
+            probe = probe.replace(marker, "not-rendered")
+        code, out = self._bisect(probe)
+        self.assertEqual(code, 6, out)
+        self.assertIn("does not render widgets for a hand-pasted theme", out)
+
+    def test_verdict_when_the_paste_did_not_land(self):
+        code, out = self._bisect("<html><head><title>blog</title></head><body>hi</body></html>")
+        self.assertEqual(code, 3, out)
+        self.assertIn("not the B0-probe theme", out)
+
+    def test_markers_inside_a_script_do_not_count(self):
+        """Blogger's widget registration mentions ids, and a theme comment can quote a
+        marker; only rendered markup counts."""
+        page = ("<html><body><p class='b0-note'>B0 baseline theme</p>"
+                "<script>var x = 'B0-MARKER-WIDGET-RENDERED';</script></body></html>")
+        code, out = self._bisect(page)
+        self.assertEqual(code, 6, out)
+        self.assertIn("MISSING", out)
 
 
 if __name__ == "__main__":
