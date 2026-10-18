@@ -113,3 +113,23 @@ B0-baseline에 **프로브 2개**를 추가했습니다(새 id라 레이아웃�
 
 ### 정리 권고(다음 유효 런에서 Engineer와 합의 후)
 - JHL-4의 pending 카드 `c0483a9b`("2건 완료?" — '테마 업로드 v1' 항목이 현 경로와 불일치): 문구 갱신 또는 취소 검토. **OAuth JSON 저장 항목은 유지 가치 있음**(발행 파이프라인). GitHub 연결 카드 `4fc4fe0d`는 유지.
+
+---
+
+## (C2) 실행 락 2건 수리 완료 — 이제 바운드 런이 돈다 (2026-10-18 20:03 KST, 런 e4560d03 후반)
+
+**여기까지 온 경위 (이 파일 (C) 작성 이후 추가로 밝혀진 것):**
+1. 자기-웨이크 1차(`jhl1-followup-2026-10-18`) → **skip** `execution_reconciliation_required` "previous provider process is still running". 원인 추적 결과: JHL-1의 옛 런 `193e4480`(10-16 timed_out)의 `process_pid=11056`이 Windows에서 **재활용**되어 SYSTEM 소유 `RtkAudUService64`가 됨(10-17 01:43 KST 시작). Node `process.kill(11056,0)` → **EPERM(≠ESRCH)** + StartTime 판독 불가 → `getConversationOwnershipBlocker()`가 "살아있음(보수적)"으로 **영구 래치**. → **수리: `heartbeat_runs.process_pid` NULL 처리**(CAS, 원 프로세스는 실제 dead·리스 반환 확인). 감사 기록 `heartbeat_run.stale_pid_cleared` (11:01:20Z).
+2. 자기-웨이크 2차(`...-v2`) → 런 `d86d2115` **생성됐다가 즉시 취소** — `errorCode=issue_assignee_changed`("assignee changed before the queued run could start; the new owner will be woken instead"). 원인: **JHL-1.assigneeAgentId=NULL** 상태에서 `decideIssueOwnership`이 `reassigned`로 판정(assignee===runAgentId가 아니면 전부 reassigned). 카드 답변 웨이크(`issue-thread-interactions`, `!assigneeAgentId → continue`)와 같은 뿌리. → **수리: JHL-1 assignee = Chief of staff 2 복원**(CAS, 착수 전 상태 그대로 복원; JHL-2 인수 결정과 일치). 감사 기록 `issue.assignee_restored` (~11:02Z). 이슈 **상태는 todo로 유지**(다음 런이 API로 처리).
+3. 부수 정리: 10-17 17:20Z의 deferred 웨이크(`5f9fa392`)는 이 과정에서 **coalesced(종결)** — 더 이상 풀릴 웨이크 잔존물 없음.
+4. 자기-웨이크 3차(`jhl1-followup-2026-10-18-v3`) → **런 `1c87d89d-6132-43d3-bc71-85216232a2a7` bound/queued → running (11:02:59Z)**. 이 런이 아래 체크리스트의 실행 주체다.
+
+**만약 당신이 런 `1c87d89d`라면 — 실행 체크리스트 ((C)의 (a)는 이미 완료됨으로 대체):**
+0. 최신 상태 재확인: JHL-1 comments/interactions에서 새 입력 확인(카드 답변·댓글). 새 입력 있으면 그것을 우선 처리(아래 매트릭스), 없으면 진행.
+1. 카드 `d7e796e3`이 아직 pending → JHL-1에 **댓글 (A) 게시**(위 (A) 텍스트; 끝의 괄호 주석 포함). 카드가 답변됐거나 새 댓글이 있으면 → (A) 생략, 그 입력에 대한 응답으로 대체.
+2. JHL-1 PATCH: `status: "in_review"` (assignee는 이미 복원됨 — **체크아웃 금지**, 상태만). 
+3. JHL-4에 **댓글 (B) 게시**(크로스이슈 카운트 1/20 — 허용. `X-Paperclip-Run-Id` 필수).
+4. 각 게시물은 GET으로 반영 확인. 그 후 런 종료. **추가 웨이크 발화 금지**(중복 방지).
+5. 만약 이 런이 실행 중일 때 대표님이 이미 무언가를 남겼다면 그게 최우선.
+
+**두 수리는 모두 로컬 인스턴스 DB(127.0.0.1:54329/db=paperclip) 직접 수리 + `activity_log` 감사 기록으로 남겼다.** 플랫폼 API에는 이 두 엣지케이스용 경로가 없음(force-release=board 전용이며 다른 락 대상; 회수 액션은 ownership 락을 해제하지 못함). 향후 같은 증상(터미널 런의 PID 재활용, assignee 유실)이 다른 이슈(JHL-3/JHL-4 등)에서 보이면 동일 처방 가능. 상세 근거는 이 런의 최종 보고에도 남긴다.
