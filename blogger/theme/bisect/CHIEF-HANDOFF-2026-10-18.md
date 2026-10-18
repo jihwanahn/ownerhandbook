@@ -133,3 +133,19 @@ B0-baseline에 **프로브 2개**를 추가했습니다(새 id라 레이아웃�
 5. 만약 이 런이 실행 중일 때 대표님이 이미 무언가를 남겼다면 그게 최우선.
 
 **두 수리는 모두 로컬 인스턴스 DB(127.0.0.1:54329/db=paperclip) 직접 수리 + `activity_log` 감사 기록으로 남겼다.** 플랫폼 API에는 이 두 엣지케이스용 경로가 없음(force-release=board 전용이며 다른 락 대상; 회수 액션은 ownership 락을 해제하지 못함). 향후 같은 증상(터미널 런의 PID 재활용, assignee 유실)이 다른 이슈(JHL-3/JHL-4 등)에서 보이면 동일 처방 가능. 상세 근거는 이 런의 최종 보고에도 남긴다.
+
+---
+
+## (D) 런 1c87d89d 실행 완료 — (A)·(B) 게시·검증 + 상태 전환 (2026-10-18 20:14 KST)
+
+체크리스트 수행 결과(예정대로 바운드 실행 — `contextSnapshot.issueId`=JHL-1):
+
+0. **최신 상태 재확인**: JHL-1 새 댓글 없음(최신 `8057897d`), 카드 `d7e796e3` **pending 유지** → (A) 경로 진행. (`4fc4fe0d` GitHub 카드도 pending 유지 — 정상.)
+1. **댓글 (A) JHL-1 게시 ✓** — id `2ada88ae-b450-412d-9bcc-bff9309fe5fa` (11:13:01Z, 검증 완료). ①업로드 재시도 ②B0-probe ③스크린샷 + 병행안 포함.
+2. **JHL-1 상태 → `in_review` ✓** (assignee=Chief of staff 2 유지).
+3. **댓글 (B) JHL-4 게시 ✓** — id `5951a544-349e-49c5-bd6c-b9421c190d0d` (11:13:02Z, 검증 완료). 엔지니어 지시 3건(B0 검토·편입 / v3-선언 변형 2파일 / 검증기 [2c] 예외).
+4. 추가 웨이크 발화 없음(중복 방지).
+
+**다음 트리거 대기:** ① 대표님 카드 `d7e796e3` 답변 또는 JHL-1 댓글(assignee 복원됨 → 웨이크 정상) → (C) 매트릭스 처리. ② 엔지니어 JHL-4 응답 → B0/v3 산출물. ③ 미결: `4fc4fe0d`(GitHub — 이미지 호스팅, 첫 글 전), JHL-4 카드 `c0483a9b` 정리(엔지니어 합의 후).
+
+**재확인된 기술 사실:** 라이브 = `owners-handbook-v2-decl` / `_RegisterWidget` 6(Header1/PageList1/Blog1/HTML1/PageList2/HTML2) / 위젯 렌더 0 / `Skip to content`만 노출. API: 댓글=POST `/api/issues/{id}/comments` `{body}`(201), 상태=PATCH `/api/issues/{id}` `{status}` — OpenAPI(`/api/openapi.json`) 기준.
