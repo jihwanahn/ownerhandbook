@@ -327,6 +327,113 @@ def ein_middleman() -> str:
     return _svg(w, h, "\n".join(parts))
 
 
+def business_license_three_layers() -> str:
+    """Explanatory: the federal / state / local licence layers, side by side.
+
+    No invented figures — every label is taken from the SBA's "Apply for licenses and
+    permits" page and the Washington Department of Revenue's licence pages named in the
+    source line.
+    """
+    w, h = 1200, 700
+    bands = [
+        (ACCENT_3, "Federal", "Regulated activities only", "USDA &#183; ATF &#183; FAA &#183; FCC &#183; NRC"),
+        (ACCENT_2, "State", "General licence, sales tax, occupations", "Revenue department / Secretary of State"),
+        (ACCENT, "City / county", "Local licence, zoning and physical permits", "City and county offices"),
+    ]
+    top, band_h, gap = 176, 132, 18
+    parts = [
+        f'  <text x="64" y="86" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
+        "A business licence is three layers</text>",
+        f'  <text x="64" y="124" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
+        "Different offices, different rules, and most businesses touch more than one</text>",
+        f'  <line x1="64" y1="152" x2="{w - 64}" y2="152" stroke="{LINE}" stroke-width="2"/>',
+    ]
+    for i, (shade, title, desc, who) in enumerate(bands):
+        y = top + i * (band_h + gap)
+        parts += [
+            f'  <rect x="64" y="{y}" width="1072" height="{band_h}" rx="12" fill="{BG_SOFT}" stroke="{LINE}" stroke-width="2"/>',
+            f'  <rect x="64" y="{y}" width="14" height="{band_h}" rx="7" fill="{shade}"/>',
+            f'  <text x="108" y="{y + 56}" font-family="{FONT}" font-size="32" font-weight="700" fill="{INK}">{title}</text>',
+            f'  <text x="108" y="{y + 98}" font-family="{FONT}" font-size="23" fill="{INK_SOFT}">{desc}</text>',
+            f'  <text x="1100" y="{y + 74}" text-anchor="end" font-family="{FONT}" font-size="21" fill="{INK}">{who}</text>',
+        ]
+    parts.append(
+        f'  <text x="64" y="{h - 34}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "Source: SBA, &#34;Apply for licenses and permits&#34;; WA Dept. of Revenue business licence pages (2026).</text>"
+    )
+    return _svg(w, h, "\n".join(parts))
+
+
+def business_license_checklist() -> str:
+    """Explanatory: the four questions that decide which layers apply, as a 2x2 grid."""
+    w, h = 1200, 640
+    cards = [
+        ("1", "What do you actually do?", "Federal list, then your state&#39;s activity list"),
+        ("2", "Where do you operate?", "A street address, a home, or on the road"),
+        ("3", "Are you selling taxable goods?", "A sales tax permit is its own registration"),
+        ("4", "Is your occupation regulated?", "Licence, not company: trade, care, finance"),
+    ]
+    xs, ys, cw, ch = (64, 616), (196, 372), 520, 150
+    parts = [
+        f'  <text x="64" y="86" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
+        "Four questions, three layers</text>",
+        f'  <text x="64" y="124" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
+        "Answer these and the licensing question stops being abstract</text>",
+        f'  <line x1="64" y1="152" x2="{w - 64}" y2="152" stroke="{LINE}" stroke-width="2"/>',
+    ]
+    for i, (num, q, sub) in enumerate(cards):
+        x = xs[i % 2]
+        y = ys[i // 2]
+        parts += [
+            f'  <rect x="{x}" y="{y}" width="{cw}" height="{ch}" rx="12" fill="{BG}" stroke="{LINE}" stroke-width="3"/>',
+            f'  <circle cx="{x + 52}" cy="{y + 52}" r="24" fill="{ACCENT}"/>',
+            f'  <text x="{x + 52}" y="{y + 61}" text-anchor="middle" font-family="{FONT}" font-size="26" '
+            f'font-weight="700" fill="{BG}">{num}</text>',
+            f'  <text x="{x + 92}" y="{y + 60}" font-family="{FONT}" font-size="25" font-weight="700" fill="{INK}">{q}</text>',
+            f'  <text x="{x + 92}" y="{y + 104}" font-family="{FONT}" font-size="21" fill="{INK_SOFT}">{sub}</text>',
+        ]
+    parts.append(
+        f'  <text x="64" y="{h - 34}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "Source: SBA, &#34;Apply for licenses and permits&#34; and &#34;Register your business&#34;; WA Dept. of Revenue (2026).</text>"
+    )
+    return _svg(w, h, "\n".join(parts))
+
+
+def business_license_inspection() -> str:
+    """Humour, style B (pure SVG): the licence you keep meaning to file, before and after.
+
+    No invented numbers — the panels only carry the qualitative consequence the sources
+    state (CA SOS: penalties and suspension or forfeiture for a missed filing).
+    """
+    w, h = 1200, 620
+    parts = [
+        f'  <rect width="{w}" height="{h}" fill="{BG_SOFT}"/>',
+        f'  <text x="64" y="96" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
+        "&#34;I&#39;ll get the licence later&#34;</text>",
+        f'  <text x="64" y="140" font-family="{FONT}" font-size="24" fill="{INK_SOFT}">'
+        "A two-panel timeline for the licence you keep postponing</text>",
+        # left panel
+        f'  <rect x="64" y="190" width="520" height="300" rx="14" fill="{BG}" stroke="{LINE}" stroke-width="3"/>',
+        f'  <text x="96" y="244" font-family="{FONT}" font-size="26" font-weight="700" fill="{ACCENT}">Month one</text>',
+        f'  <text x="96" y="296" font-family="{FONT}" font-size="23" fill="{INK}">Customers pay</text>',
+        f'  <text x="96" y="336" font-family="{FONT}" font-size="23" fill="{INK}">Nobody asks for paper</text>',
+        f'  <text x="96" y="376" font-family="{FONT}" font-size="23" fill="{INK}">It feels optional</text>',
+        f'  <text x="96" y="452" font-family="{FONT}" font-size="25" font-weight="600" fill="{ACCENT}">Cost so far: $0</text>',
+        # right panel
+        f'  <rect x="616" y="190" width="520" height="300" rx="14" fill="{BG}" stroke="{LINE}" stroke-width="3"/>',
+        f'  <text x="648" y="244" font-family="{FONT}" font-size="26" font-weight="700" fill="{WARN}">Then you grow</text>',
+        f'  <text x="648" y="296" font-family="{FONT}" font-size="23" fill="{INK}">A registration is overdue</text>',
+        f'  <text x="648" y="336" font-family="{FONT}" font-size="23" fill="{INK}">A renewal lapses</text>',
+        f'  <text x="648" y="376" font-family="{FONT}" font-size="23" fill="{INK}">The letter arrives</text>',
+        f'  <text x="648" y="452" font-family="{FONT}" font-size="25" font-weight="600" fill="{WARN}">Cost so far: not $0</text>',
+        f'  <text x="64" y="{h - 78}" font-family="{FONT}" font-size="23" font-weight="600" fill="{INK}">'
+        "Filing late is cheaper than being found late: an overdue renewal is a fee, a missed filing is a penalty.</text>",
+        f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "Source: CA Secretary of State &#8212; failure to file can mean penalties and suspension or forfeiture (2026).</text>",
+    ]
+    return _svg(w, h, "\n".join(parts))
+
+
 BUILDERS = {
     "llc-filing-fee-breakdown": filing_fee_chart,
     "first-90-days-timeline": first_90_days_timeline,
@@ -334,6 +441,9 @@ BUILDERS = {
     "ein-paperwork-order": ein_paperwork_order,
     "ein-wait-times": ein_wait_times,
     "ein-middleman": ein_middleman,
+    "business-license-three-layers": business_license_three_layers,
+    "business-license-checklist": business_license_checklist,
+    "business-license-inspection": business_license_inspection,
 }
 
 

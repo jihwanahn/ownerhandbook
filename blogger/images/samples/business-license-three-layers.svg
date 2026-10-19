@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img">
+  <rect width="1200" height="700" fill="#ffffff"/>
+  <text x="64" y="86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">A business licence is three layers</text>
+  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">Different offices, different rules, and most businesses touch more than one</text>
+  <line x1="64" y1="152" x2="1136" y2="152" stroke="#e4e7eb" stroke-width="2"/>
+  <rect x="64" y="176" width="1072" height="132" rx="12" fill="#f7f8fa" stroke="#e4e7eb" stroke-width="2"/>
+  <rect x="64" y="176" width="14" height="132" rx="7" fill="#94a89b"/>
+  <text x="108" y="232" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="32" font-weight="700" fill="#1f2328">Federal</text>
+  <text x="108" y="274" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#5b6470">Regulated activities only</text>
+  <text x="1100" y="250" text-anchor="end" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#1f2328">USDA &#183; ATF &#183; FAA &#183; FCC &#183; NRC</text>
+  <rect x="64" y="326" width="1072" height="132" rx="12" fill="#f7f8fa" stroke="#e4e7eb" stroke-width="2"/>
+  <rect x="64" y="326" width="14" height="132" rx="7" fill="#2f855a"/>
+  <text x="108" y="382" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="32" font-weight="700" fill="#1f2328">State</text>
+  <text x="108" y="424" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#5b6470">General licence, sales tax, occupations</text>
+  <text x="1100" y="400" text-anchor="end" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#1f2328">Revenue department / Secretary of State</text>
+  <rect x="64" y="476" width="1072" height="132" rx="12" fill="#f7f8fa" stroke="#e4e7eb" stroke-width="2"/>
+  <rect x="64" y="476" width="14" height="132" rx="7" fill="#14532d"/>
+  <text x="108" y="532" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="32" font-weight="700" fill="#1f2328">City / county</text>
+  <text x="108" y="574" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#5b6470">Local licence, zoning and physical permits</text>
+  <text x="1100" y="550" text-anchor="end" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#1f2328">City and county offices</text>
+  <text x="64" y="666" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: SBA, &#34;Apply for licenses and permits&#34;; WA Dept. of Revenue business licence pages (2026).</text>
+</svg>

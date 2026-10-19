@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img">
+  <rect width="1200" height="620" fill="#ffffff"/>
+  <rect width="1200" height="620" fill="#f7f8fa"/>
+  <text x="64" y="96" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">&#34;I&#39;ll get the licence later&#34;</text>
+  <text x="64" y="140" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#5b6470">A two-panel timeline for the licence you keep postponing</text>
+  <rect x="64" y="190" width="520" height="300" rx="14" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <text x="96" y="244" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Month one</text>
+  <text x="96" y="296" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">Customers pay</text>
+  <text x="96" y="336" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">Nobody asks for paper</text>
+  <text x="96" y="376" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">It feels optional</text>
+  <text x="96" y="452" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#14532d">Cost so far: $0</text>
+  <rect x="616" y="190" width="520" height="300" rx="14" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <text x="648" y="244" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#8a5a00">Then you grow</text>
+  <text x="648" y="296" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">A registration is overdue</text>
+  <text x="648" y="336" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">A renewal lapses</text>
+  <text x="648" y="376" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">The letter arrives</text>
+  <text x="648" y="452" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#8a5a00">Cost so far: not $0</text>
+  <text x="64" y="542" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Filing late is cheaper than being found late: an overdue renewal is a fee, a missed filing is a penalty.</text>
+  <text x="64" y="580" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: CA Secretary of State &#8212; failure to file can mean penalties and suspension or forfeiture (2026).</text>
+</svg>

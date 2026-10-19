@@ -95,6 +95,9 @@ Diagrams shipped so far:
 | `assets/images/ein-paperwork-order.webp` | Explanatory | Timeline: where the EIN sits in the paperwork order (EIN guide) |
 | `assets/images/ein-wait-times.webp` | Explanatory | Bar chart, EIN turnaround by application route, IRS-published values (EIN guide) |
 | `assets/images/ein-middleman.webp` | Humour | Two panels: a site that charges for an EIN next to irs.gov, both `$0` claims sourced (EIN guide) |
+| `assets/images/business-license-three-layers.webp` | Explanatory | Stacked bands: the federal / state / city-county licence layers and who issues each (business-licence guide) |
+| `assets/images/business-license-checklist.webp` | Explanatory | Four questions that decide which licence layers apply (business-licence guide) |
+| `assets/images/business-license-inspection.webp` | Humour | Two panels: the licence you postpone in month one vs. the overdue-registration letter later (business-licence guide) |
 
 ## 7. A number in an image is a citation
 

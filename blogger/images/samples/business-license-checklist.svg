@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="640" viewBox="0 0 1200 640" role="img">
+  <rect width="1200" height="640" fill="#ffffff"/>
+  <text x="64" y="86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">Four questions, three layers</text>
+  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">Answer these and the licensing question stops being abstract</text>
+  <line x1="64" y1="152" x2="1136" y2="152" stroke="#e4e7eb" stroke-width="2"/>
+  <rect x="64" y="196" width="520" height="150" rx="12" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <circle cx="116" cy="248" r="24" fill="#14532d"/>
+  <text x="116" y="257" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">1</text>
+  <text x="156" y="256" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="700" fill="#1f2328">What do you actually do?</text>
+  <text x="156" y="300" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#5b6470">Federal list, then your state&#39;s activity list</text>
+  <rect x="616" y="196" width="520" height="150" rx="12" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <circle cx="668" cy="248" r="24" fill="#14532d"/>
+  <text x="668" y="257" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">2</text>
+  <text x="708" y="256" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="700" fill="#1f2328">Where do you operate?</text>
+  <text x="708" y="300" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#5b6470">A street address, a home, or on the road</text>
+  <rect x="64" y="372" width="520" height="150" rx="12" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <circle cx="116" cy="424" r="24" fill="#14532d"/>
+  <text x="116" y="433" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">3</text>
+  <text x="156" y="432" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="700" fill="#1f2328">Are you selling taxable goods?</text>
+  <text x="156" y="476" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#5b6470">A sales tax permit is its own registration</text>
+  <rect x="616" y="372" width="520" height="150" rx="12" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <circle cx="668" cy="424" r="24" fill="#14532d"/>
+  <text x="668" y="433" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#ffffff">4</text>
+  <text x="708" y="432" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="700" fill="#1f2328">Is your occupation regulated?</text>
+  <text x="708" y="476" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="21" fill="#5b6470">Licence, not company: trade, care, finance</text>
+  <text x="64" y="606" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: SBA, &#34;Apply for licenses and permits&#34; and &#34;Register your business&#34;; WA Dept. of Revenue (2026).</text>
+</svg>
