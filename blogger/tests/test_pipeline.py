@@ -51,6 +51,13 @@ CFG = api.load_config()
 ASSETS = "https://example.github.io/owners-handbook-images"
 EXAMPLE = os.path.join(REPO, "content", "posts", "example-guide.md")
 
+# The repo's live config now points at the GitHub Pages image host, so the tests that
+# assert the "no asset base configured" path must bring their own config instead of
+# inheriting that value — otherwise they would pass or fail depending on whether the
+# image host happens to be connected, which is not what they are testing.
+CFG_WITHOUT_ASSETS = json.loads(json.dumps(CFG))
+CFG_WITHOUT_ASSETS["assets"] = {k: v for k, v in CFG["assets"].items() if k != "publicBaseUrl"}
+
 # Minimal stand-in for a page rendered with the theme applied: the theme's own markers,
 # the tags the theme adds, and the tags Blogger emits exactly once.
 HEALTHY_PAGE = """<html class='v2' dir='ltr' lang='en'><head>
@@ -126,9 +133,10 @@ _WidgetManager._RegisterWidget('_HTMLView', new _WidgetInfo('HTML2', 'footer', d
 </body></html>"""
 
 
-def convert(md: str, link_map: dict | None = None, base: str | None = ASSETS):
+def convert(md: str, link_map: dict | None = None, base: str | None = ASSETS,
+            cfg: dict = CFG):
     warnings: list[str] = []
-    html = md2blogger.convert(md, CFG, link_map or {}, warnings, base)
+    html = md2blogger.convert(md, cfg, link_map or {}, warnings, base)
     return html, warnings
 
 
@@ -235,7 +243,8 @@ class ConversionTests(unittest.TestCase):
         self.assertIn('rel="noopener"', html)
 
     def test_asset_base_missing_leaves_placeholder(self):
-        html, warnings = convert("![alt](assets/images/x.webp \"cap\")\n", base="")
+        html, warnings = convert("![alt](assets/images/x.webp \"cap\")\n", base="",
+                                 cfg=CFG_WITHOUT_ASSETS)
         self.assertIn("{{ASSET_BASE}}/x.webp", html)
         self.assertTrue(any("asset base URL is not configured" in w for w in warnings))
 
@@ -291,7 +300,7 @@ class RepoFixtureTests(unittest.TestCase):
         self.assertLessEqual(len(report["search_description"]), 150)
 
     def test_placeholder_blocks_the_gate_without_asset_base(self):
-        report = md2blogger.build_post_payload(EXAMPLE, CFG, None)
+        report = md2blogger.build_post_payload(EXAMPLE, CFG_WITHOUT_ASSETS, None)
         self.assertTrue(any("placeholders" in e for e in report["errors"]))
 
     def test_payload_is_api_shaped(self):

@@ -1,27 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img">
   <rect width="1200" height="720" fill="#ffffff"/>
   <text x="64" y="86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">What an LLC costs to file</text>
-  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">State filing fee, sample figures in US dollars</text>
+  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">State filing fee, US dollars, 2026</text>
   <line x1="64" y1="150" x2="1136" y2="150" stroke="#e4e7eb" stroke-width="2"/>
-  <text x="64" y="201" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Wyoming</text>
-  <rect x="300" y="170" width="154" height="46" rx="3" fill="#14532d"/>
-  <text x="470" y="201" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$100</text>
+  <text x="64" y="201" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Massachusetts</text>
+  <rect x="300" y="170" width="770" height="46" rx="3" fill="#14532d"/>
+  <text x="1086" y="201" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$500</text>
   <text x="64" y="273" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Texas</text>
   <rect x="300" y="242" width="462" height="46" rx="3" fill="#2f855a"/>
   <text x="778" y="273" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$300</text>
-  <text x="64" y="345" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Florida</text>
-  <rect x="300" y="314" width="192" height="46" rx="3" fill="#94a89b"/>
-  <text x="508" y="345" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$125</text>
-  <text x="64" y="417" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">New York</text>
-  <rect x="300" y="386" width="315" height="46" rx="3" fill="#2f855a"/>
-  <text x="631" y="417" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$205</text>
-  <text x="64" y="489" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">California</text>
-  <rect x="300" y="458" width="107" height="46" rx="3" fill="#94a89b"/>
-  <text x="423" y="489" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$70</text>
-  <text x="64" y="561" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Massachusetts</text>
-  <rect x="300" y="530" width="770" height="46" rx="3" fill="#14532d"/>
-  <text x="1086" y="561" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$500</text>
+  <text x="64" y="345" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">New York</text>
+  <rect x="300" y="314" width="308" height="46" rx="3" fill="#2f855a"/>
+  <text x="624" y="345" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$200</text>
+  <text x="64" y="417" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Florida</text>
+  <rect x="300" y="386" width="192" height="46" rx="3" fill="#94a89b"/>
+  <text x="508" y="417" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$125</text>
+  <text x="64" y="489" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">Wyoming</text>
+  <rect x="300" y="458" width="154" height="46" rx="3" fill="#94a89b"/>
+  <text x="470" y="489" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$100</text>
+  <text x="64" y="561" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#1f2328">California</text>
+  <rect x="300" y="530" width="107" height="46" rx="3" fill="#14532d"/>
+  <text x="423" y="561" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" font-weight="600" fill="#1f2328">$70</text>
   <line x1="300" y1="586" x2="1136" y2="586" stroke="#e4e7eb" stroke-width="2"/>
-  <text x="64" y="646" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#8a5a00">Illustrative sample — replace the figures with cited data before this image is published.</text>
-  <text x="64" y="680" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source of the real numbers: each state&#39;s secretary of state fee schedule.</text>
+  <text x="64" y="680" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: each state&#39;s secretary of state fee schedule, 2026.</text>
 </svg>

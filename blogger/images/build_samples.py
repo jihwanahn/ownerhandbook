@@ -37,8 +37,9 @@ WARN = "#8a5a00"
 
 FONT = "Segoe UI, Helvetica Neue, Arial, sans-serif"
 
-SAMPLE_NOTE = ("Illustrative sample — replace the figures with cited data "
-               "before this image is published.")
+# Figures in the explanatory diagrams are citations, not decoration. Every number
+# drawn here must be traceable to the filing agency that charges it; the source line
+# under each figure names the agency class. See blogger/images/IMAGE-RULES.md §7.
 
 
 def _svg(width: int, height: int, body: str) -> str:
@@ -51,15 +52,22 @@ def _svg(width: int, height: int, body: str) -> str:
 
 
 def filing_fee_chart() -> str:
-    """Horizontal bar chart: LLC filing fee by state (sample figures)."""
+    """Horizontal bar chart: LLC filing fee by state, primary-source values.
+
+    Verified 2026-10-19 against each state's own fee schedule (the numbers a filer is
+    actually charged by the secretary of state, not a comparison site's summary):
+    MA $500 (sec.state.ma.us), TX $300 (sos.state.tx.us), NY $200 (dos.ny.gov; the
+    $205 quoted elsewhere adds a $5 plain-copy fee), FL $125 (dos.fl.gov — $100 filing
+    + $25 registered agent), WY $100 (sos.wyo.gov), CA $70 (sos.ca.gov).
+    """
     w, h = 1200, 720
     rows = [
-        ("Wyoming", 100),
-        ("Texas", 300),
-        ("Florida", 125),
-        ("New York", 205),
-        ("California", 70),
         ("Massachusetts", 500),
+        ("Texas", 300),
+        ("New York", 200),
+        ("Florida", 125),
+        ("Wyoming", 100),
+        ("California", 70),
     ]
     max_val = 500
     left, top = 300, 170
@@ -70,13 +78,13 @@ def filing_fee_chart() -> str:
         f'  <text x="64" y="86" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
         "What an LLC costs to file</text>",
         f'  <text x="64" y="124" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
-        "State filing fee, sample figures in US dollars</text>",
+        "State filing fee, US dollars, 2026</text>",
         f'  <line x1="64" y1="150" x2="{w - 64}" y2="150" stroke="{LINE}" stroke-width="2"/>',
     ]
     for i, (state, value) in enumerate(rows):
         y = top + i * (bar_h + gap)
         bar_w = int(plot_w * value / max_val)
-        shade = ACCENT if i in (0, 5) else ACCENT_2 if value >= 200 else ACCENT_3
+        shade = ACCENT if i in (0, len(rows) - 1) else ACCENT_2 if value >= 200 else ACCENT_3
         parts += [
             f'  <text x="64" y="{y + 31}" font-family="{FONT}" font-size="24" fill="{INK}">{state}</text>',
             f'  <rect x="{left}" y="{y}" width="{bar_w}" height="{bar_h}" rx="3" fill="{shade}"/>',
@@ -86,9 +94,8 @@ def filing_fee_chart() -> str:
     parts += [
         f'  <line x1="{left}" y1="{top + 6 * (bar_h + gap) - gap + 10}" x2="{w - 64}" '
         f'y2="{top + 6 * (bar_h + gap) - gap + 10}" stroke="{LINE}" stroke-width="2"/>',
-        f'  <text x="64" y="{h - 74}" font-family="{FONT}" font-size="19" fill="{WARN}">{SAMPLE_NOTE}</text>',
         f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
-        "Source of the real numbers: each state&#39;s secretary of state fee schedule.</text>",
+        "Source: each state&#39;s secretary of state fee schedule, 2026.</text>",
     ]
     return _svg(w, h, "\n".join(parts))
 
@@ -97,9 +104,9 @@ def first_90_days_timeline() -> str:
     """Milestone timeline for the first 90 days after formation."""
     w, h = 1200, 620
     milestones = [
-        ("Day 0", "Formation filed", "Articles of organisation accepted, EIN applied for"),
+        ("Day 0", "Formation filed", "Articles of organization accepted, EIN applied for"),
         ("Day 30", "Bank and records", "Business account opened, receipts filed from day one"),
-        ("Day 60", "Licences and permits", "Local business licence, sales tax registration if selling goods"),
+        ("Day 60", "Licenses and permits", "Local business license, sales tax registration if selling goods"),
         ("Day 90", "Habits that stick", "Monthly close, quarterly estimates reserved"),
     ]
     top = 320
@@ -135,9 +142,6 @@ def first_90_days_timeline() -> str:
                 f'  <text x="{x}" y="{top + 96 + j * 28}" text-anchor="middle" '
                 f'font-family="{FONT}" font-size="20" fill="{INK_SOFT}">{line}</text>'
             )
-    parts.append(
-        f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="19" fill="{WARN}">{SAMPLE_NOTE}</text>'
-    )
     return _svg(w, h, "\n".join(parts))
 
 
@@ -169,10 +173,11 @@ def cartoon_meme() -> str:
         f'  <text x="680" y="330" font-family="{FONT}" font-size="26" fill="{INK}">Personal assets</text>',
         f'  <text x="680" y="374" font-family="{FONT}" font-size="26" fill="{INK}">on the line</text>',
         f'  <text x="680" y="436" font-family="{FONT}" font-size="30" font-weight="700" fill="{WARN}">'
-        "$500 – $3,000 to fix</text>",
-        f'  <text x="64" y="{h - 60}" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
+        "The fix costs more</text>",
+        f'  <text x="680" y="474" font-family="{FONT}" font-size="30" font-weight="700" fill="{WARN}">'
+        "than the LLC did</text>",
+        f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
         "House rule: humour images are drawn or generated in-house. No third-party memes.</text>",
-        f'  <text x="64" y="{h - 26}" font-family="{FONT}" font-size="19" fill="{WARN}">{SAMPLE_NOTE}</text>',
     ]
     return _svg(w, h, "\n".join(parts))
 

@@ -63,13 +63,16 @@ Author in markdown; the converter produces the Blogger HTML:
 
 Blogger's API has no image upload endpoint, so the body references absolute URLs.
 
-- **Now (pre-GitHub):** images are stored in `assets/images/` in this repo and are not
-  published. `md2blogger.py` refuses to emit payloads that still contain the
-  `{{ASSET_BASE}}` placeholder, which is why a draft cannot be created with
-  unpublished image URLs.
-- **Phase 2 (planned):** the same files are served from GitHub Pages; set
-  `assets.publicBaseUrl` in `blogger/config.json` once the host is connected (or pass
-  `--assets-base` for a one-off run).
+- **Now:** the files in `assets/images/` are served by GitHub Pages from this repo
+  (`jihwanahn/ownerhandbook`, branch `master`) — connected 2026-10-19. `md2blogger.py`
+  reads `assets.publicBaseUrl` from `blogger/config.json` and appends `/` + basename,
+  so that value includes the `assets/images` path segment.
+- Publishing an image therefore means: regenerate the file here, copy it into
+  `assets/images/`, commit, push, and confirm the Pages URL returns 200 **before**
+  updating the post. A draft built against an unpublished image URL is worse than no
+  draft — the body would ship a broken `<img>`.
+- `md2blogger.py` still refuses to emit payloads containing the `{{ASSET_BASE}}`
+  placeholder, which is the guard for the case where `publicBaseUrl` is unset.
 
 ## 6. Commands
 
@@ -81,15 +84,27 @@ node   blogger/images/compose_caption.mjs in.jpg out.webp --top "…" --bottom "
 node   blogger/images/compose_caption.mjs --help 2>/dev/null || true
 ```
 
-Sample files produced for tone review (JHL-4 §3):
+Diagrams shipped so far:
 
 | File | Style | What it shows |
 | --- | --- | --- |
-| `assets/images/llc-filing-fee-breakdown.webp` | Explanatory | Bar chart, 6 states, sample figures clearly labelled as sample |
+| `assets/images/llc-filing-fee-breakdown.webp` | Explanatory | Bar chart, 6 states, primary-source filing fees (see §7) |
 | `assets/images/first-90-days-timeline.webp` | Explanatory | Four milestones after formation |
 | `assets/images/helpful-relative-meme.webp` | Humour | Generated illustration + our caption ("my cousin says…") |
 | `assets/images/helpful-relative-diagram.webp` | Humour (variant) | The same joke drawn entirely in SVG |
 
-**Sample figures are illustrative.** Every `.svg` in `samples/` carries a visible
-"illustrative sample — replace with cited data" line; the line is removed only when a
-guide's numbers have been verified against a primary source.
+## 7. A number in an image is a citation
+
+An explanatory figure is a claim, and readers cannot click through it to check. So:
+
+- Every figure that shows a number names its source in the image itself, in the same
+  file the reader sees (not only in the article body).
+- The figures live in `build_samples.py` next to the source for each value, so a
+  number and its provenance are edited together. Change one without the other and the
+  review should reject it.
+- If a number cannot be traced to the agency that charges it, it does not go in the
+  figure — rewrite the figure around what can be sourced.
+- `build_samples.py` no longer emits a "sample figures" disclaimer: the disclaimers
+  were a build-time scaffold for figures awaiting verification, and the shipped figures
+  are now verified (2026-10-19). A figure that needs a disclaimer is not ready to
+  publish.
