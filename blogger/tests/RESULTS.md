@@ -317,22 +317,17 @@ without a name), the guide-drift guard, and the `--check` mode.
 - `Label1`/`Label2` still have no instance. If they never appear, the fallback is adding
   the label widgets directly under Layout.
 
-## Not yet verified (waiting on the owner)
+## Not yet verified — resolved as of 2026-10-19
 
-1. ~~Blogger theme upload~~ — **applied and verified** (section 6), the served copy is the
-   current file (section 8, check `[1b]`), and the mobile slot is on the theme (check `[6]`).
-   What is still open is the widget rendering itself (sections 7–10). The owner's next steps,
-   in order: **one Layout save / built-in theme round-trip → apply
-   `owners-handbook-v3-decl.xml` (upload, or the manual paste) → `bisect/B0-probe.xml` if it
-   is still empty**; `verify_applied.py` judges each step (exit 0 = done), and
-   `verify_applied.py --bisect` judges the probe step.
-2. **Publishing anything public** — deliberately out of scope until the owner reviews
-   a draft; the tool refuses without `--confirm-owner-approved`, and the live smoke test
-   verified that refusal on the real API.
-3. **Real post with real images** — the first end-to-end draft with a genuine guide
-   waits for image hosting (`assets.publicBaseUrl`), because the gate refuses a post
-   whose image URLs are unresolved. The smoke test used a placeholder base on a draft
-   that was deleted in the same run, so no broken image ever reached a reader.
+1. ~~Blogger theme~~ — **track closed by the owner** (2026-10-18): the stock **Simple**
+   theme is kept, custom-theme work stopped over token cost, and the artefacts remain in
+   `blogger/theme/` for the record only. The widget/bisect work (sections 7–10) is closed
+   with it — **do not re-run `verify_applied.py`**.
+2. ~~Publishing anything public~~ — **done**: post #1 went LIVE on 2026-10-19 after the
+   owner's explicit approval through the gate (`--confirm-owner-approved`, interaction
+   `1b906b58`); see section 13.
+3. ~~Real post with real images~~ — **done**: the first guide with GitHub-Pages-hosted
+   WebP figures is the live post in section 13.
 
 ---
 
@@ -508,4 +503,32 @@ figures above; the 403s are bot filtering, not dead links.
 - `npm run verify:all` → **exit 0** (Astro SEO + theme 48/52/57/59 + pipeline **84** tests
   + images 4/4)
 - Still a draft: publication waits for the owner's explicit approval, as before.
+
+## 13. First post published — 2026-10-19
+
+The owner accepted the "첫 글 공개 승인" card (interaction `1b906b58`, 20:55 KST), so the
+gate was satisfied and post #1 went public:
+
+    python blogger/publish.py publish 4880096691114614728 --confirm-owner-approved "Owner via Paperclip approval card '첫 글 공개 승인' (interaction 1b906b58), accepted 2026-10-19 20:55 KST"
+
+| Check | Result |
+| --- | --- |
+| Public URL | `https://ownerhandbook.blogspot.com/2026/10/how-much-does-llc-really-cost-2026.html` |
+| API read-back | `LIVE`, same postId, title "How Much Does an LLC Really Cost? A 2026 Breakdown" |
+| Live page (curl) | HTTP 200; H1 + `<title>` correct; 3 figures / 3 images (GitHub Pages WebP URLs); 12 official links intact; canonical + og:title/url/image/description + viewport present; no placeholder or sample text; no `DRAFT` marker |
+| Feed / home / robots | entry in `/feeds/posts/default`; listed on the home page; robots.txt default allow + sitemap line |
+| Sitemap | `/sitemap.xml` contains the post (`lastmod 2026-10-19T11:56:53Z`) |
+| Records | `content/link-map.json` gets the live slug URL; `blogger/approvals.json` appended (who approved, when, target) |
+
+### Search Console state — baseline the same evening
+
+- Property `https://ownerhandbook.blogspot.com/` is `siteOwner`, `sitemap.xml` listed;
+  last Google fetch was 2026-10-18 (empty-blog era), re-fetch pending. Nothing to submit
+  from here — the token scope is `webmasters.readonly`.
+- URL Inspection for the new post alternated between "URL is unknown to Google" and
+  "Discovered – currently not indexed" across calls minutes apart: normal this soon after
+  publishing, first crawl still pending.
+- New tool `blogger/gsc_check.py` (read-only) prints every LIVE post's coverage state plus
+  the sitemap record in one command — run it again before the AdSense application. Four new
+  offline tests pin the ledger filter and the read-only contract; the suite is at **88 tests**.
 

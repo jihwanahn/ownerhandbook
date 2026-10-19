@@ -96,6 +96,17 @@ python blogger/publish.py delete <postId>
   snippet as a description fallback, and `md2blogger.py` reports the intended text so
   the reviewer can paste it into the editor if a custom one is wanted.
 
+## Monitoring (read-only)
+
+```bash
+python blogger/gsc_check.py    # every LIVE post in the ledger + the property's sitemap state
+```
+
+Uses the Search Console URL Inspection API (scope `webmasters.readonly`). It **reports
+only** — Google discovers posts through the Blogger sitemap, and this tool never submits
+a sitemap or requests indexing. Run it after publishing, and again before the AdSense
+application to see what is actually indexed.
+
 ## Quality gate
 
 `md2blogger.py` blocks a draft when: the body is empty; there is no image; a

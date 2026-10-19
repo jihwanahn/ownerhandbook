@@ -28,6 +28,7 @@ sys.path.insert(0, os.path.join(REPO, "blogger", "theme"))
 
 import blogger_api as api  # noqa: E402
 import decl_variant  # noqa: E402
+import gsc_check  # noqa: E402
 import md2blogger  # noqa: E402
 import v3_variant  # noqa: E402
 import verify_applied  # noqa: E402
@@ -659,6 +660,53 @@ class ApiContractTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0)
         self.assertIn("delete", proc.stdout)
         self.assertIn("revert", proc.stdout)
+
+
+class GscCheckTests(unittest.TestCase):
+    """gsc_check.py — the read-only index/sitemap reporter (added when post #1 went live).
+
+    The tool exists so an agent (or the owner) can answer one question in one command:
+    "is the published content actually indexed yet?" It must stay read-only — Google
+    discovers posts through the Blogger sitemap, and the token scope is
+    webmasters.readonly, so nothing in this file may mutate Search Console state.
+    """
+
+    def test_live_posts_filters_to_live_with_url(self):
+        ledger = {
+            "published-guide": {"status": "LIVE", "url": "https://example.blogspot.com/2026/10/a.html"},
+            "still-a-draft": {"status": "DRAFT", "url": "https://example.blogspot.com/"},
+            "live-without-url": {"status": "LIVE"},
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            path = os.path.join(tmp, "published.json")
+            with open(path, "w", encoding="utf-8") as fh:
+                json.dump(ledger, fh)
+            self.assertEqual(
+                gsc_check.live_posts(path),
+                [("published-guide", "https://example.blogspot.com/2026/10/a.html")],
+            )
+
+    def test_missing_ledger_reports_nothing(self):
+        self.assertEqual(gsc_check.live_posts(os.path.join("no", "such", "file.json")), [])
+
+    def test_read_only_by_contract(self):
+        # The only POST this tool may send is the URL-inspection query. Submitting
+        # sitemaps or using the Indexing API would need scopes it does not have —
+        # keep the source free of them so the contract survives future edits.
+        with open(os.path.join(REPO, "blogger", "gsc_check.py"), encoding="utf-8") as fh:
+            src = fh.read()
+        self.assertIn("urlInspection/index:inspect", src)
+        self.assertNotIn("sitemaps/submit", src)
+        self.assertNotIn("indexing.googleapis.com", src)
+        self.assertNotIn("urlNotifications", src)
+
+    def test_cli_help_works_offline(self):
+        proc = subprocess.run(
+            [sys.executable, os.path.join(REPO, "blogger", "gsc_check.py"), "--help"],
+            capture_output=True, text=True, cwd=REPO,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertIn("read-only", proc.stdout)
 
 
 class PathAndHostTests(unittest.TestCase):
