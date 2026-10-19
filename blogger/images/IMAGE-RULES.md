@@ -92,6 +92,9 @@ Diagrams shipped so far:
 | `assets/images/first-90-days-timeline.webp` | Explanatory | Four milestones after formation |
 | `assets/images/helpful-relative-meme.webp` | Humour | Generated illustration + our caption ("my cousin says…") |
 | `assets/images/helpful-relative-diagram.webp` | Humour (variant) | The same joke drawn entirely in SVG |
+| `assets/images/ein-paperwork-order.webp` | Explanatory | Timeline: where the EIN sits in the paperwork order (EIN guide) |
+| `assets/images/ein-wait-times.webp` | Explanatory | Bar chart, EIN turnaround by application route, IRS-published values (EIN guide) |
+| `assets/images/ein-middleman.webp` | Humour | Two panels: a site that charges for an EIN next to irs.gov, both `$0` claims sourced (EIN guide) |
 
 ## 7. A number in an image is a citation
 
