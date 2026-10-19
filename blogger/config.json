@@ -36,8 +36,8 @@
   },
   "assets": {
     "localDir": "assets/images",
-    "publicBaseUrl": null,
-    "_note": "Set publicBaseUrl once GitHub Pages image hosting is connected (Phase 2). Until then md2blogger.py refuses to emit absolute image URLs unless --assets-base is passed."
+    "publicBaseUrl": "https://jihwanahn.github.io/ownerhandbook/assets/images",
+    "_note": "Connected 2026-10-19 (JHL-1): images are served by GitHub Pages from this repo's assets/images/ (repo jihwanahn/ownerhandbook, branch master). md2blogger.py uses this as the default base; --assets-base overrides it per run."
   },
   "links": {
     "mapFile": "content/link-map.json"
