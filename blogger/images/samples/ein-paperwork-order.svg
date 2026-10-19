@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img">
+  <rect width="1200" height="600" fill="#ffffff"/>
+  <text x="64" y="86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">The EIN comes third</text>
+  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">Four steps, and the order is not optional</text>
+  <line x1="210" y1="310" x2="990" y2="310" stroke="#e4e7eb" stroke-width="6"/>
+  <circle cx="210" cy="310" r="16" fill="#14532d"/>
+  <circle cx="210" cy="310" r="7" fill="#ffffff"/>
+  <text x="210" y="264" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Step 1</text>
+  <text x="210" y="372" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Form the entity</text>
+  <text x="210" y="406" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">The state accepts your LLC,</text>
+  <text x="210" y="434" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">corporation or partnership</text>
+  <text x="210" y="462" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">filing</text>
+  <circle cx="470" cy="310" r="16" fill="#14532d"/>
+  <circle cx="470" cy="310" r="7" fill="#ffffff"/>
+  <text x="470" y="264" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Step 2</text>
+  <text x="470" y="372" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Get the EIN</text>
+  <text x="470" y="406" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Free from the IRS, issued</text>
+  <text x="470" y="434" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">immediately online</text>
+  <circle cx="730" cy="310" r="16" fill="#14532d"/>
+  <circle cx="730" cy="310" r="7" fill="#ffffff"/>
+  <text x="730" y="264" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Step 3</text>
+  <text x="730" y="372" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Open the bank account</text>
+  <text x="730" y="406" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Banks ask for the EIN and</text>
+  <text x="730" y="434" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">the formation documents</text>
+  <circle cx="990" cy="310" r="16" fill="#14532d"/>
+  <circle cx="990" cy="310" r="7" fill="#ffffff"/>
+  <text x="990" y="264" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">Step 4</text>
+  <text x="990" y="372" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">Pay people</text>
+  <text x="990" y="406" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">Payroll returns, W-9</text>
+  <text x="990" y="434" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">requests and 1099 forms</text>
+  <text x="990" y="462" text-anchor="middle" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="20" fill="#5b6470">need the number</text>
+  <text x="64" y="560" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: IRS, &#34;Employer identification number&#34; and &#34;How to apply for an EIN&#34;; SBA, &#34;Launch your business&#34; (2026).</text>
+</svg>

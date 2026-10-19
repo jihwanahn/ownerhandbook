@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img">
+  <rect width="1200" height="600" fill="#ffffff"/>
+  <text x="64" y="86" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">How long an EIN takes</text>
+  <text x="64" y="124" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="22" fill="#5b6470">IRS-published turnaround by application route, 2026</text>
+  <line x1="64" y1="152" x2="1136" y2="152" stroke="#e4e7eb" stroke-width="2"/>
+  <text x="64" y="234" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" fill="#1f2328">Online</text>
+  <rect x="360" y="200" width="4" height="52" rx="3" fill="#14532d"/>
+  <text x="382" y="234" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#1f2328">Issued immediately</text>
+  <text x="64" y="320" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" fill="#1f2328">Fax Form SS-4</text>
+  <rect x="360" y="286" width="84" height="52" rx="3" fill="#2f855a"/>
+  <text x="462" y="320" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#1f2328">About 4 business days</text>
+  <text x="64" y="406" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" fill="#1f2328">Mail Form SS-4</text>
+  <rect x="360" y="372" width="420" height="52" rx="3" fill="#94a89b"/>
+  <text x="798" y="406" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#1f2328">About 4 weeks</text>
+  <line x1="64" y1="438" x2="1136" y2="438" stroke="#e4e7eb" stroke-width="2"/>
+  <text x="64" y="482" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">If your principal place of business is outside the U.S., the online tool is not available:</text>
+  <text x="64" y="508" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">those applicants call 267-941-1099, 6 a.m.&#8211;11 p.m. ET, Monday&#8211;Friday.</text>
+  <text x="64" y="560" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: IRS, &#34;How to apply for an EIN&#34; and &#34;Employer identification number&#34;, 2026.</text>
+</svg>

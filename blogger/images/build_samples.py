@@ -182,10 +182,158 @@ def cartoon_meme() -> str:
     return _svg(w, h, "\n".join(parts))
 
 
+def ein_paperwork_order() -> str:
+    """Timeline: where the EIN sits in the paperwork order. No invented numbers —
+    the only figures drawn are 'free', 'immediate' and the step numbers, all from
+    the IRS pages named in the source line."""
+    w, h = 1200, 600
+    milestones = [
+        ("Step 1", "Form the entity", "The state accepts your LLC, corporation or partnership filing"),
+        ("Step 2", "Get the EIN", "Free from the IRS, issued immediately online"),
+        ("Step 3", "Open the bank account", "Banks ask for the EIN and the formation documents"),
+        ("Step 4", "Pay people", "Payroll returns, W-9 requests and 1099 forms need the number"),
+    ]
+    top = 310
+    parts = [
+        f'  <text x="64" y="86" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
+        "The EIN comes third</text>",
+        f'  <text x="64" y="124" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
+        "Four steps, and the order is not optional</text>",
+        f'  <line x1="210" y1="{top}" x2="{w - 210}" y2="{top}" stroke="{LINE}" stroke-width="6"/>',
+    ]
+    step = (w - 420) / (len(milestones) - 1)
+    for i, (day, title, detail) in enumerate(milestones):
+        x = int(210 + i * step)
+        parts += [
+            f'  <circle cx="{x}" cy="{top}" r="16" fill="{ACCENT}"/>',
+            f'  <circle cx="{x}" cy="{top}" r="7" fill="{BG}"/>',
+            f'  <text x="{x}" y="{top - 46}" text-anchor="middle" font-family="{FONT}" '
+            f'font-size="26" font-weight="700" fill="{ACCENT}">{day}</text>',
+            f'  <text x="{x}" y="{top + 62}" text-anchor="middle" font-family="{FONT}" '
+            f'font-size="23" font-weight="600" fill="{INK}">{title}</text>',
+        ]
+        lines, current = [], ""
+        for word in detail.split():
+            if len(current) + len(word) > 26:
+                lines.append(current)
+                current = word
+            else:
+                current = (current + " " + word).strip()
+        lines.append(current)
+        for j, line in enumerate(lines):
+            parts.append(
+                f'  <text x="{x}" y="{top + 96 + j * 28}" text-anchor="middle" '
+                f'font-family="{FONT}" font-size="20" fill="{INK_SOFT}">{line}</text>'
+            )
+    parts.append(
+        f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "Source: IRS, &#34;Employer identification number&#34; and &#34;How to apply for an EIN&#34;; "
+        "SBA, &#34;Launch your business&#34; (2026).</text>"
+    )
+    return _svg(w, h, "\n".join(parts))
+
+
+def ein_wait_times() -> str:
+    """Horizontal bar chart: how long each EIN route takes, in business days.
+
+    Values are the IRS's own published turnarounds: online = issued immediately,
+    fax = about 4 business days, mail = about 4 weeks (20 business days). The bars
+    are drawn in business days so their relative length means something, and the
+    printed label states the unit the IRS actually used.
+    """
+    w, h = 1200, 600
+    rows = [
+        ("Online", 0, "Issued immediately"),
+        ("Fax Form SS-4", 4, "About 4 business days"),
+        ("Mail Form SS-4", 20, "About 4 weeks"),
+    ]
+    max_val = 20
+    left, top = 360, 200
+    bar_h, gap = 52, 34
+    plot_w = w - left - 420
+    parts = [
+        f'  <text x="64" y="86" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
+        "How long an EIN takes</text>",
+        f'  <text x="64" y="124" font-family="{FONT}" font-size="22" fill="{INK_SOFT}">'
+        "IRS-published turnaround by application route, 2026</text>",
+        f'  <line x1="64" y1="152" x2="{w - 64}" y2="152" stroke="{LINE}" stroke-width="2"/>',
+    ]
+    for i, (label, value, printed) in enumerate(rows):
+        y = top + i * (bar_h + gap)
+        bar_w = max(int(plot_w * value / max_val), 4)
+        shade = ACCENT if i == 0 else ACCENT_2 if i == 1 else ACCENT_3
+        parts += [
+            f'  <text x="64" y="{y + 34}" font-family="{FONT}" font-size="25" fill="{INK}">{label}</text>',
+            f'  <rect x="{left}" y="{y}" width="{bar_w}" height="{bar_h}" rx="3" fill="{shade}"/>',
+            f'  <text x="{left + bar_w + 18}" y="{y + 34}" font-family="{FONT}" font-size="25" '
+            f'font-weight="600" fill="{INK}">{printed}</text>',
+        ]
+    parts += [
+        f'  <line x1="64" y1="{top + 3 * (bar_h + gap) - gap + 14}" x2="{w - 64}" '
+        f'y2="{top + 3 * (bar_h + gap) - gap + 14}" stroke="{LINE}" stroke-width="2"/>',
+        f'  <text x="64" y="{h - 118}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "If your principal place of business is outside the U.S., the online tool is not available:</text>",
+        f'  <text x="64" y="{h - 92}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "those applicants call 267-941-1099, 6 a.m.&#8211;11 p.m. ET, Monday&#8211;Friday.</text>",
+        f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "Source: IRS, &#34;How to apply for an EIN&#34; and &#34;Employer identification number&#34;, 2026.</text>",
+    ]
+    return _svg(w, h, "\n".join(parts))
+
+
+def ein_middleman() -> str:
+    """Humour, style B (pure SVG, no generation step): the reseller next to the source.
+
+    The only two figures drawn are $0 and 'issued immediately', both from the IRS
+    page quoted under the panels — see blogger/images/IMAGE-RULES.md §7.
+    """
+    w, h = 1200, 620
+    parts = [
+        f'  <rect width="{w}" height="{h}" fill="{BG_SOFT}"/>',
+        f'  <text x="64" y="96" font-family="{FONT}" font-size="40" font-weight="700" fill="{INK}">'
+        "&#34;Professional EIN filing&#34;</text>",
+        f'  <text x="64" y="140" font-family="{FONT}" font-size="24" fill="{INK_SOFT}">'
+        "Two ways to get the same nine digits</text>",
+        # left panel
+        f'  <rect x="64" y="190" width="520" height="300" rx="14" fill="{BG}" stroke="{LINE}" stroke-width="3"/>',
+        f'  <text x="96" y="244" font-family="{FONT}" font-size="26" font-weight="700" fill="{WARN}">'
+        "A website that charges</text>",
+        f'  <text x="96" y="296" font-family="{FONT}" font-size="23" fill="{INK}">'
+        "Fills in Form SS-4 for you</text>",
+        f'  <text x="96" y="336" font-family="{FONT}" font-size="23" fill="{INK}">'
+        "Sends it to the IRS</text>",
+        f'  <text x="96" y="376" font-family="{FONT}" font-size="23" fill="{INK}">'
+        "You wait for the number</text>",
+        f'  <text x="96" y="452" font-family="{FONT}" font-size="25" font-weight="600" fill="{WARN}">'
+        "Cost: whatever it asks</text>",
+        # right panel
+        f'  <rect x="616" y="190" width="520" height="300" rx="14" fill="{BG}" stroke="{LINE}" stroke-width="3"/>',
+        f'  <text x="648" y="244" font-family="{FONT}" font-size="26" font-weight="700" fill="{ACCENT}">'
+        "irs.gov</text>",
+        f'  <text x="648" y="296" font-family="{FONT}" font-size="23" fill="{INK}">'
+        "You fill in Form SS-4</text>",
+        f'  <text x="648" y="336" font-family="{FONT}" font-size="23" fill="{INK}">'
+        "Issued immediately online</text>",
+        f'  <text x="648" y="376" font-family="{FONT}" font-size="23" fill="{INK}">'
+        "You print the confirmation</text>",
+        f'  <text x="648" y="452" font-family="{FONT}" font-size="25" font-weight="600" fill="{ACCENT}">'
+        "Cost: $0</text>",
+        f'  <text x="64" y="{h - 78}" font-family="{FONT}" font-size="23" font-weight="600" fill="{INK}">'
+        "The number is identical &#8212; there is one issuer and one EIN system.</text>",
+        f'  <text x="64" y="{h - 40}" font-family="{FONT}" font-size="19" fill="{INK_SOFT}">'
+        "Source: IRS, &#34;Get an employer identification number&#34;: you never have to pay a "
+        "fee for an EIN.</text>",
+    ]
+    return _svg(w, h, "\n".join(parts))
+
+
 BUILDERS = {
     "llc-filing-fee-breakdown": filing_fee_chart,
     "first-90-days-timeline": first_90_days_timeline,
     "helpful-relative-advice": cartoon_meme,
+    "ein-paperwork-order": ein_paperwork_order,
+    "ein-wait-times": ein_wait_times,
+    "ein-middleman": ein_middleman,
 }
 
 

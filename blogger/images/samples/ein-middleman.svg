@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="620" viewBox="0 0 1200 620" role="img">
+  <rect width="1200" height="620" fill="#ffffff"/>
+  <rect width="1200" height="620" fill="#f7f8fa"/>
+  <text x="64" y="96" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="40" font-weight="700" fill="#1f2328">&#34;Professional EIN filing&#34;</text>
+  <text x="64" y="140" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="24" fill="#5b6470">Two ways to get the same nine digits</text>
+  <rect x="64" y="190" width="520" height="300" rx="14" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <text x="96" y="244" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#8a5a00">A website that charges</text>
+  <text x="96" y="296" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">Fills in Form SS-4 for you</text>
+  <text x="96" y="336" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">Sends it to the IRS</text>
+  <text x="96" y="376" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">You wait for the number</text>
+  <text x="96" y="452" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#8a5a00">Cost: whatever it asks</text>
+  <rect x="616" y="190" width="520" height="300" rx="14" fill="#ffffff" stroke="#e4e7eb" stroke-width="3"/>
+  <text x="648" y="244" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="26" font-weight="700" fill="#14532d">irs.gov</text>
+  <text x="648" y="296" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">You fill in Form SS-4</text>
+  <text x="648" y="336" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">Issued immediately online</text>
+  <text x="648" y="376" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" fill="#1f2328">You print the confirmation</text>
+  <text x="648" y="452" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="25" font-weight="600" fill="#14532d">Cost: $0</text>
+  <text x="64" y="542" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="23" font-weight="600" fill="#1f2328">The number is identical &#8212; there is one issuer and one EIN system.</text>
+  <text x="64" y="580" font-family="Segoe UI, Helvetica Neue, Arial, sans-serif" font-size="19" fill="#5b6470">Source: IRS, &#34;Get an employer identification number&#34;: you never have to pay a fee for an EIN.</text>
+</svg>
