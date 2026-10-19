@@ -465,3 +465,47 @@ The moment JHL-1 set `assets.publicBaseUrl`, they began failing — the suite wa
 supply their own config (`CFG_WITHOUT_ASSETS`), so they test what they claim to rather than
 whether the image host happens to be connected.
 
+## 12. Official source links in the draft (2026-10-19)
+
+The owner accepted the expanded draft as the length/tone baseline (`ok`), so the remaining
+step before publication was the citation pass promised in its place: the "Where these
+numbers come from" section now names an official page for every figure instead of a
+source class.
+
+### What changed in `content/posts/example-guide.md`
+
+| Change | Detail |
+| --- | --- |
+| Filing-fee table | Eight states with the fee and an official link: MT $35, KY $40, CA $70, WY $100, FL $125, NY $200, TX $300, MA $500 |
+| Annual-report bullet | Links to the Arizona LLC fee schedule, New Mexico business filings, the Massachusetts fee schedule ($500) and the FTB page ($800 minimum franchise tax) |
+| Claim narrowed | "Arizona, Missouri or New Mexico charge nothing" → Arizona and New Mexico only. Missouri's LLC registration-report rules read inconsistently between official and secondary sources (no fee vs. no requirement), so the specific claim was dropped rather than linked to something it does not say. Three occurrences updated (body, sources, FAQ). |
+
+### Link check (2026-10-19)
+
+Every URL in the section was fetched and its content read for the figure, not just its
+status code:
+
+- MT `sosmt.gov/business/fees/` → Articles of Organization $35.00
+- KY `sos.ky.gov/.../Fees.aspx` → LLC Articles of Organization $40.00
+- CA `bpd.cdn.sos.ca.gov/pdf/be-fee-schedule-062018.pdf` → Articles of Organization (Form LLC-1) $70.00
+- WY `sos.wyo.gov/business/docs/businessfees.pdf` → Articles of Organization $100.00
+- FL `dos.fl.gov/sunbiz/forms/fees/llc-fees/` → total new LLC $125.00 ($100 + $25 agent)
+- NY `dos.ny.gov/fee-schedules` → Articles of Organization $200
+- TX `sos.texas.gov/corp/forms/806_boc.pdf` → certificate of formation (Forms 201, 203, 205, 206) $300
+- MA `sec.state.ma.us` (LLC page and fee schedule) → certificate of registration $500, annual report $500
+- AZ `azcc.gov/.../fee-schedule-llcs...pdf` → LLC schedule carries no annual report line
+- NM `sos.nm.gov/business-services/`; CA FTB `ftb.ca.gov/.../limited-liability-company/` → "must pay an annual tax of $800"
+
+Note that `curl` returns 403 (FL, NY) and 000 (AZ) for some of these agencies — they block
+non-browser clients. The pages were verified through the extraction path and serve the
+figures above; the 403s are bot filtering, not dead links.
+
+### Verification
+
+- Draft read back from the Blogger API: `DRAFT`, **2,332 words**, 3 figures, 2 tables,
+  **12 official links** (10 `.gov` + 2 `ma.us`), no `Missouri` claim, no placeholder text,
+  no self-link
+- `npm run verify:all` → **exit 0** (Astro SEO + theme 48/52/57/59 + pipeline **84** tests
+  + images 4/4)
+- Still a draft: publication waits for the owner's explicit approval, as before.
+

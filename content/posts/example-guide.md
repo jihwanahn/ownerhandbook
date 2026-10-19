@@ -48,7 +48,7 @@ Four lines, one sum:
   traditional one.
 
 The cheapest honest total is a filing fee and almost nothing else: $35 in Montana or $40
-in Kentucky, no annual fee in states such as Arizona, Missouri or New Mexico, and an
+in Kentucky, no annual report in states such as Arizona or New Mexico, and an
 online-only bank account.
 
 The most expensive version of the same four lines is roughly $1,500 a year — California's
@@ -97,7 +97,8 @@ page mentions.
 
 Every state calls it something slightly different — annual report, annual list,
 statement of information, or a franchise tax — and every state sets its own fee.
-Arizona, Missouri and New Mexico charge nothing. Massachusetts charges $500. California
+Arizona and New Mexico do not require an LLC annual report at all. Massachusetts
+charges $500. California
 charges $800 as a minimum franchise tax, which applies to every LLC organised there or
 doing business there, profit or loss.
 
@@ -180,18 +181,29 @@ paperwork cost is a floor rather than a total.
 # Where these numbers come from
 
 Every figure above is the amount charged by the agency that charges it, checked in
-October 2026 — not a comparison site's summary of it.
+October 2026 — not a comparison site's summary of it. Each link goes to the official
+page, so you can check a number in about a minute.
 
-- **Filing fees** are set by each state's secretary of state. The range runs from
-  Montana at $35 and Kentucky at $40 to Massachusetts at $500. The six states charted
-  above are Massachusetts $500, Texas $300, New York $200, Florida $125, Wyoming $100
-  and California $70.
+| State | LLC filing fee | Official page |
+| --- | --- | --- |
+| Montana | $35 | [Business services filing fees](https://sosmt.gov/business/fees/) |
+| Kentucky | $40 | [Business filing fees](https://www.sos.ky.gov/bus/business-filings/Pages/Fees.aspx) |
+| California | $70 | [Business entity fee schedule (PDF)](https://bpd.cdn.sos.ca.gov/pdf/be-fee-schedule-062018.pdf) |
+| Wyoming | $100 | [Filing fee schedule (PDF)](https://sos.wyo.gov/business/docs/businessfees.pdf) |
+| Florida | $125 | [LLC fees](https://dos.fl.gov/sunbiz/forms/fees/llc-fees/) |
+| New York | $200 | [Fee schedules](https://dos.ny.gov/fee-schedules) |
+| Texas | $300 | [Business filing fee schedule (PDF)](https://www.sos.texas.gov/corp/forms/806_boc.pdf) |
+| Massachusetts | $500 | [LLC filing information](https://www.sec.state.ma.us/divisions/corporations/filing-by-subject/limited-liability/corporations-limited-liability-company.htm) |
+
 - **Registered agent**: $0 when a member of the LLC acts as its own agent, which most
   states allow. Commercial services run from about $125 to $250 a year.
-- **Annual report or state renewal**: no fee in states such as Arizona, Missouri and
-  New Mexico; $500 a year in Massachusetts. The $800 at the top of the range is
-  California's annual minimum franchise tax, which every LLC organised or doing
-  business there pays whether or not it made money.
+- **Annual report or state renewal**: [Arizona's LLC fee schedule](https://www.azcc.gov/docs/default-source/corps-files/fee-schedules/fee-schedule-llcs646a1cd0d6b24246ab2253aecbc3ab40.pdf)
+  has no annual report line in it, and [New Mexico's business filings](https://www.sos.nm.gov/business-services/)
+  do not include one for LLCs, so both cost nothing after the filing fee. Massachusetts charges
+  [$500 a year](https://www.sec.state.ma.us/divisions/corporations/general-information/corporations-filing-fees.htm);
+  the $800 at the top of the range is California's
+  [annual minimum franchise tax](https://www.ftb.ca.gov/file/business/types/limited-liability-company/index.html),
+  which every LLC organised or doing business there pays whether or not it made money.
 - **Business bank account**: online-only banks charge no monthly fee. Traditional
   banks charge roughly $15 to $30 a month unless a minimum balance is kept, which is
   where the $360 comes from — most owners pay the $0 end of that range.
@@ -227,7 +239,7 @@ one, because the state has to be able to reach a real person there.
 
 **What happens if the LLC earns nothing?**
 The annual report is still due, and in California the $800 minimum is still due.
-Arizona, Missouri and New Mexico charge nothing, which is part of why they are popular
+Arizona and New Mexico require no annual report, which is part of why they are popular
 with businesses that are not trading yet. A dormant LLC in Massachusetts or California
 is not free to keep.
 
