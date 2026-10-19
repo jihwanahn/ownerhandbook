@@ -4,5 +4,11 @@
     "approvedBy": "Owner via Paperclip approval card '첫 글 공개 승인' (interaction 1b906b58), accepted 2026-10-19 20:55 KST",
     "action": "publish",
     "target": "4880096691114614728"
+  },
+  {
+    "at": "2026-10-19T23:15:41+0900",
+    "approvedBy": "Owner via Paperclip approval card 'Article #2 검수 — 공개 승인 요청 (EIN 가이드)' (interaction 171ddf95), accepted 2026-10-19 22:56 KST",
+    "action": "publish",
+    "target": "8269955500952714472"
   }
 ]
