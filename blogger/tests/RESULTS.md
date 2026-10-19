@@ -396,3 +396,72 @@ are forbidden in the tags variant and the validator enforces it.
   branches (fresh probes / existing-id only / theme-served-only / older theme still served)
 - No publication of any kind, no secret outside its local file, no spending, no AdSense or
   hiring touched.
+
+## 11. Figures verified against primary sources + the draft rebuilt (2026-10-19)
+
+The owner connected GitHub Pages (JHL-1) and the chief of staff created the first draft
+(`postId 4880096691114614728`). Before it could be published, every number in it had to
+be traced to the agency that charges it. This section records what changed and how it was
+checked; it supersedes §4 (whose figures were placeholders) and the "sample figures"
+disclaimer those figures carried.
+
+### The number check
+
+| Claim as written | Verified value | Source |
+| --- | --- | --- |
+| filing fee $50 – $500 | **$35 – $500** | Montana $35 (sosmt.gov), Kentucky $40 (sos.ky.gov), Massachusetts $500 (sec.state.ma.us) |
+| registered agent $0 – $150/yr | **$0 – $250/yr** | $0 self-appointed; Northwest $125, ZenBusiness $199, LegalZoom $249 |
+| annual report $0 – $800/yr | **$0 – $800/yr**, row renamed "annual report or state renewal" | $0 (AZ/MO/NM); MA $500 report; the $800 is California's annual minimum franchise tax (ftb.ca.gov), not a report fee |
+| bank account $0 – $180/yr | **$0 – $360/yr** | $0 online-only; $15/mo (Wells Fargo Initiate) to $29.95/mo (BofA Business Advantage) unless the balance waiver is met |
+| chart: New York $205 | **$200** | dos.ny.gov fee schedule; the $205 quoted elsewhere adds a $5 plain-copy fee |
+| formation service "+$100 – $300" | **"$0 to about $300"** | free tiers exist (Bizee, Inc Authority, LegalZoom Basic, ZenBusiness) alongside $39 (Northwest) and $249 (LegalZoom Pro) |
+
+Also verified and left unchanged: Texas $300 (sos.state.tx.us), Florida $125 (dos.fl.gov —
+$100 filing + $25 registered agent), Wyoming $100 (sos.wyo.gov), California $70 (sos.ca.gov).
+
+### What the article and the images gained
+
+- The guide carries a **"Where these numbers come from"** section naming the source class
+  for each row, and the chart carries its own source line *inside the image* — a reader
+  cannot click through a chart, so the citation travels with it (`IMAGE-RULES.md` §7).
+- `build_samples.py` no longer emits the "illustrative sample" scaffold; the figures now
+  sit in the source next to their provenance so a number and its citation are edited
+  together.
+
+### Internal links — the policy decision
+
+The gate reported three internal-link warnings on the first draft. The policy applied:
+
+1. **The self-reference is removed.** `[[llc-cost-breakdown|this guide]]` pointed at the
+   article the reader was already on. That is a defect, not a missing link.
+2. **Forward references stay as pending text.** `[[start-a-business|where to start]]`
+   resolves to a `<span class="link-pending">` — visible words, no dead link — and becomes
+   a real `<a>` automatically once that guide is published and `content/link-map.json`
+   gains its URL. Keeping it in the master preserves the authoring intent.
+3. **The "2+ internal links" target is deferred, not waived.** The blog has zero published
+   posts and zero published pages (sitemap is empty), so no internal link target exists
+   yet. The gate treats the count as a **warning** and `link-missing` as an **error**, which
+   is the right split: post #1 ships with the warning, and the target starts binding from
+   the second published guide.
+
+### Verification
+
+- `npm run verify:all` → **exit 0** (Astro SEO + theme 48/52/57/59 + pipeline **84** tests
+  + images 4/4)
+- Chart and timeline fetched back from `jihwanahn.github.io` and **md5-compared to the local
+  files** — the draft's image URLs serve the verified bytes, not a cached older copy
+- Draft read back from the Blogger API and asserted field by field (14 checks: DRAFT status,
+  every corrected range, the renamed row, the sources section, both image URLs, no
+  self-link, no placeholder, no sample disclaimer, 2 figures with 2 captions) — **all PASS**
+- No publication: the post is still a draft. No secret left its local file. No AdSense,
+  hiring or spending touched.
+
+### Defect found in the test suite (fixed here)
+
+`test_asset_base_missing_leaves_placeholder` and `test_placeholder_blocks_the_gate_without_asset_base`
+asserted the "no asset base configured" path while reading the **live** `blogger/config.json`.
+The moment JHL-1 set `assets.publicBaseUrl`, they began failing — the suite was red at
+`fac90e3` and the earlier "84 tests pass" claim did not hold at that commit. Both tests now
+supply their own config (`CFG_WITHOUT_ASSETS`), so they test what they claim to rather than
+whether the image host happens to be connected.
+
