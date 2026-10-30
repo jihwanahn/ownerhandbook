@@ -50,8 +50,38 @@ ALLOWED_TAGS = {
 }
 ALLOWED_ATTRS = {
     "href", "src", "alt", "title", "width", "height", "loading", "decoding",
-    "rel", "class", "colspan", "rowspan", "scope", "target",
+    "rel", "class", "colspan", "rowspan", "scope", "target", "style",
 }
+# Responsive image contract: Blogger themes (incl. the live "Simple" skin, ~620px
+# post column) do not cap post images, so every <img> carries its own cap.
+IMG_STYLE = "display:block;max-width:100%;height:auto;margin:0 auto;padding:0;border:0;box-sizing:border-box"
+FIG_STYLE = "margin:1.5em 0;max-width:100%"
+IMG_WIDTH = 1200
+IMG_MIN_RATIO, IMG_MAX_RATIO = 1.6, 2.0   # 1200x600..1200x750; 1200x630 (1.91:1) recommended
+
+
+def webp_size(path: str) -> tuple[int, int] | None:
+    """(width, height) of a WebP file, stdlib only (VP8 / VP8L / VP8X)."""
+    try:
+        with open(path, "rb") as fh:
+            d = fh.read(40)
+    except OSError:
+        return None
+    if d[:4] != b"RIFF" or d[8:12] != b"WEBP":
+        return None
+    kind = d[12:16]
+    if kind == b"VP8 ":
+        return (int.from_bytes(d[26:28], "little") & 0x3FFF, int.from_bytes(d[28:30], "little") & 0x3FFF)
+    if kind == b"VP8L":
+        b = int.from_bytes(d[21:25], "little")
+        return ((b & 0x3FFF) + 1, ((b >> 14) & 0x3FFF) + 1)
+    if kind == b"VP8X":
+        return (int.from_bytes(d[24:27], "little") + 1, int.from_bytes(d[27:30], "little") + 1)
+    return None
+
+
+def _local_image(src: str, cfg: dict) -> str:
+    return os.path.join(REPO, (cfg.get("assets") or {}).get("localDir", "assets/images"), src.split("/")[-1])
 IMG_EXT_RE = re.compile(r"\.(webp|png|jpe?g|gif|svg|avif)$", re.I)
 KEBAB_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*\.(webp|png|jpe?g|gif|svg|avif)$")
 PLACEHOLDER_RE = re.compile(r"\{\{[A-Z_]+:[^}]+\}\}|\{\{[A-Z_]+\}\}")
@@ -153,7 +183,7 @@ def inline(text: str, cfg: dict, link_map: dict, warnings: list[str], base: str 
             warnings.append(warn)
         cap = f" title='{html.escape(caption, quote=True)}'" if caption else ""
         return (f"<img src=\"{url}\" alt=\"{html.escape(alt, quote=True)}\"{cap} "
-                f"loading=\"lazy\" decoding=\"async\"/>")
+                f"style=\"{IMG_STYLE}\" loading=\"lazy\" decoding=\"async\"/>")
 
     def _wiki(match: re.Match) -> str:
         slug, label = match.group(1).strip(), (match.group(2) or "").strip()
@@ -275,9 +305,15 @@ def convert(md: str, cfg: dict, link_map: dict, warnings: list[str], base: str |
             url, warn = _resolve_asset(src, cfg, base)
             if warn:
                 warnings.append(warn)
-            out.append("<figure>")
-            out.append(f'  <img src="{url}" alt="{html.escape(alt, quote=True)}" '
-                       f'width="1200" loading="lazy" decoding="async"/>')
+            size = webp_size(_local_image(src, cfg))
+            if size is None:
+                warnings.append(f"could not read dimensions of '{src}' — width/height omitted")
+                dims = ""
+            else:
+                dims = f' width="{size[0]}" height="{size[1]}"'
+            out.append(f'<figure style="{FIG_STYLE}">')
+            out.append(f'  <img src="{url}" alt="{html.escape(alt, quote=True)}"{dims} '
+                       f'style="{IMG_STYLE}" loading="lazy" decoding="async"/>')
             if caption:
                 out.append(f"  <figcaption>{inline(caption, cfg, link_map, warnings, base)}</figcaption>")
             else:
@@ -401,6 +437,17 @@ def quality_gate(html_body: str, meta: dict, audit: TagAudit, cfg: dict,
     for img in audit.imgs:
         if not (img.get("alt") or "").strip():
             errors.append(f"image without alt text: {img.get('src')}")
+        if "max-width:100%" not in (img.get("style") or "").replace(" ", ""):
+            errors.append(f"image not capped to the column (needs style max-width:100%;height:auto): {img.get('src')}")
+        size = webp_size(_local_image(str(img.get("src", "")), cfg))
+        if size:
+            w, h = size
+            if w != IMG_WIDTH:
+                errors.append(f"image is {w}px wide, house size is {IMG_WIDTH}px: {img.get('src')}")
+            if not (IMG_MIN_RATIO <= w / h <= IMG_MAX_RATIO):
+                errors.append(f"image aspect {w}x{h} ({w/h:.2f}:1) outside {IMG_MIN_RATIO}-{IMG_MAX_RATIO}:1: {img.get('src')}")
+            if img.get("width") and str(img.get("width")) != str(w):
+                errors.append(f"width attr {img.get('width')} != file width {w}: {img.get('src')}")
         if img.get("loading") != "lazy":
             warnings.append(f"image missing loading=\"lazy\": {img.get('src')}")
         name = os.path.basename(str(img.get("src", "")))

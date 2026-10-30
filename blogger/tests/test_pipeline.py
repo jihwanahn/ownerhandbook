@@ -186,7 +186,7 @@ class ConversionTests(unittest.TestCase):
 
     def test_figure_gets_caption_and_lazy_attributes(self):
         html, _ = convert('![A chart](assets/images/my-chart.webp "The caption")\n')
-        self.assertIn("<figure>", html)
+        self.assertIn("<figure", html)
         self.assertIn("<figcaption>The caption</figcaption>", html)
         self.assertIn('loading="lazy"', html)
         self.assertIn('decoding="async"', html)
@@ -251,7 +251,7 @@ class ConversionTests(unittest.TestCase):
 
 
 class QualityGateTests(unittest.TestCase):
-    BODY = '<p>text</p><figure><img src="a.webp" alt="a" loading="lazy"/>' \
+    BODY = '<p>text</p><figure><img src="a.webp" alt="a" style="max-width:100%;height:auto" loading="lazy"/>' \
            "<figcaption>cap</figcaption></figure>"
 
     def test_passes_a_clean_guide(self):
@@ -713,7 +713,7 @@ class PathAndHostTests(unittest.TestCase):
     """The gate must follow config.json, and masters must work from any drive."""
 
     IMG = ('<figure><img src="https://cdn.example.com/x.webp" alt="chart" '
-           'loading="lazy"/><figcaption>cap</figcaption></figure>')
+           'style="max-width:100%;height:auto" loading="lazy"/><figcaption>cap</figcaption></figure>')
 
     def test_internal_links_follow_the_configured_host(self):
         cfg = json.loads(json.dumps(CFG))
