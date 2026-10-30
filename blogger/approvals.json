@@ -10,5 +10,23 @@
     "approvedBy": "Owner via Paperclip approval card 'Article #2 검수 — 공개 승인 요청 (EIN 가이드)' (interaction 171ddf95), accepted 2026-10-19 22:56 KST",
     "action": "publish",
     "target": "8269955500952714472"
+  },
+  {
+    "at": "2026-10-30T09:35:02+0900",
+    "approvedBy": "Jihwan Ahn, 2026-10-30 09:34 KST (chat approval)",
+    "action": "publish",
+    "target": "2177769081534945113"
+  },
+  {
+    "at": "2026-10-30T10:49:49+0900",
+    "approvedBy": "Jihwan Ahn, 2026-10-30 10:47 KST (chat approval)",
+    "action": "publish-page",
+    "target": "6096615887342260055"
+  },
+  {
+    "at": "2026-10-30T10:49:52+0900",
+    "approvedBy": "Jihwan Ahn, 2026-10-30 10:47 KST (chat approval)",
+    "action": "publish-page",
+    "target": "369707025512362424"
   }
 ]

@@ -1,26 +1,53 @@
 ---
-title: About The Owner's Handbook
+title: About
 slug: about
 status: draft
 ---
 
-The Owner's Handbook publishes step-by-step guides for people starting and running a
-small business in the United States: what things cost, which registrations are
-required, how to price work, which tools are worth paying for, and how to find the
-first customers.
+The Owner's Handbook is an independent website that publishes step-by-step guides for
+people starting and running a small business in the United States. It covers what
+things cost, which registrations and tax filings are required, how to price your work,
+which tools are worth paying for, and how to find your first customers.
 
-**How the guides are made.** Every guide is written from primary sources — state
-agencies, the SBA, the IRS and published vendor pricing — and each claim about a fee
-or a deadline is linked to where it came from. Where a number varies by state or by
-company size, the guide says so instead of averaging it away.
+## Who runs this site
 
-**What this site is not.** The Owner's Handbook is not a law firm, an accounting firm
-or a tax adviser. Nothing here is legal, tax or accounting advice for your specific
-situation. Use the guides to know which questions to ask, then take the ones that
-carry liability to a licensed professional in your state.
+The Owner's Handbook is written and published by **Jihwan Ahn** (JH Labs).
 
-**Corrections.** Fees change. If a number here is out of date, say so on the Contact
-page or in the comments on the guide, and it will be corrected with a dated note.
+## How the guides are made
 
-<!-- TODO(reviewer): add publisher name, contact email and the editorial-policy link
-     before this page is published. Blogger page, not a post. -->
+- **Primary sources first.** Each guide is built from official sources: the IRS, the
+  SBA, state agencies and published vendor pricing. Claims about a fee, a threshold or
+  a deadline link inline to the page they come from, and every guide ends with a
+  "Where these numbers come from" table.
+- **Variation is stated, not averaged.** When a rule or fee differs by state or by
+  business size, the guide says so.
+- **AI assistance, human review.** Guides are drafted with the help of AI tools. Every
+  fact, figure and deadline is checked against the official sources it cites, and
+  Jihwan reviews and approves each guide before it is published.
+- **Dates.** Guides name the tax year or rule edition they describe. When a rule
+  changes, the guide is updated and the change is noted with a date.
+
+## What this site is not
+
+The Owner's Handbook is not a law firm, an accounting firm or a tax adviser. Nothing
+here is legal, tax or accounting advice for your situation. Use the guides to work out
+which questions to ask, and take decisions that carry liability to a licensed
+professional in your state.
+
+## Advertising and independence
+
+This site may show ads served by Google AdSense. Advertisers do not choose or review
+the content, and no guide is paid for. There are currently no affiliate links on this site. If that
+changes, it will be disclosed here and in every post that contains one. See the
+[Privacy Policy](https://ownerhandbook.blogspot.com/p/privacy-policy.html) for how ads
+use cookies.
+
+## Corrections and contact
+
+Fees and thresholds change. If something here is wrong or out of date, use the
+[Contact page](https://ownerhandbook.blogspot.com/p/contact.html) or email
+**coldstew@gmail.com**. Confirmed
+corrections are made with a dated note.
+
+The site's private publishing tool is described separately on the
+[JHL Publisher page](https://ownerhandbook.blogspot.com/p/about-jhl-publisher.html).
