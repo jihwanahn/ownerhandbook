@@ -49,7 +49,7 @@ licences.
 The SBA's own summary is that "most small businesses need a combination of licenses
 and permits from both federal and state agencies," with the local layer sitting on top.
 
-![The three layers of business licensing](assets/images/business-license-three-layers.webp "A federal licence covers regulated activities only. States regulate far more. The city or county licence is the layer most owners meet last.")
+![The three layers of business licensing](assets/images/business-license-three-layers-v2.webp "A federal licence covers regulated activities only. States regulate far more. The city or county licence is the layer most owners meet last.")
 
 # Layer 1 — the federal licence most businesses never need
 

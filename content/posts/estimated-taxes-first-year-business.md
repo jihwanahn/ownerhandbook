@@ -9,7 +9,7 @@ status: draft
 
 **Short answer:** maybe not. If you were a U.S. citizen or resident for all of 2025 and your 2025 total tax was zero, you don't have to pay any estimated tax for 2026, even if your new business made money. Otherwise you generally must pay if you expect to owe **$1,000 or more** for 2026 after withholding and refundable credits, unless your withholding and on-time payments cover the smaller of **90% of your 2026 tax** or **100% of your 2025 tax**. If you still owe, the last 2026 payment is due **January 15, 2027**.
 
-![Three-question flowchart: zero 2025 tax, under $1,000 owed, or safe harbor met means no 2026 estimated tax is required; otherwise pay the rest by January 15, 2027](assets/images/estimated-tax-decision.webp "The three federal tests, from IRS Form 1040-ES (2026). The 100% test becomes 110% if your 2025 AGI was over $150,000.")
+![Three-question flowchart: zero 2025 tax, under $1,000 owed, or safe harbor met means no 2026 estimated tax is required; otherwise pay the rest by January 15, 2027](assets/images/estimated-tax-decision-v2.webp "The three federal tests, from IRS Form 1040-ES (2026). The 100% test becomes 110% if your 2025 AGI was over $150,000.")
 
 This guide covers federal estimated tax for sole proprietors, single-member LLC owners, partners, and S corporation shareholders, the people who use Form 1040-ES. States run their own estimated tax rules, so check your state revenue department separately.
 

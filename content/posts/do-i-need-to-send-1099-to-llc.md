@@ -16,7 +16,7 @@ the form is due to both the LLC and the IRS by **February 1, 2027**.
 The rest of this guide explains how to read the W-9, which exceptions apply, and how
 to file before the deadline.
 
-![Does this LLC get a 1099-NEC? A flowchart from W-9 line 3a to the answer](assets/images/llc-1099-decision.webp "Start with line 3a of the LLC's W-9. A disregarded or partnership LLC gets a 1099-NEC at $2,000; an LLC taxed as a corporation usually does not.")
+![Does this LLC get a 1099-NEC? A flowchart from W-9 line 3a to the answer](assets/images/llc-1099-decision-v2.webp "Start with line 3a of the LLC's W-9. A disregarded or partnership LLC gets a 1099-NEC at $2,000; an LLC taxed as a corporation usually does not.")
 
 # Why "LLC" alone doesn't answer the question
 

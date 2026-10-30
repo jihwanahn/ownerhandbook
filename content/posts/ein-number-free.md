@@ -43,7 +43,7 @@ An entity should have exactly one. If you have picked up more than one — usual
 applying twice, or from inheriting a number when you took over a business — the
 Business and Specialty Tax Line at 800-829-4933 will tell you which one to use.
 
-![The order of the paperwork when you start a business](assets/images/ein-paperwork-order.webp "Four steps, in this order. The IRS asks you to form the entity with your state before you apply for the EIN; the bank asks for both.")
+![The order of the paperwork when you start a business](assets/images/ein-paperwork-order-v2.webp "Four steps, in this order. The IRS asks you to form the entity with your state before you apply for the EIN; the bank asks for both.")
 
 # Who needs a number — and who can skip it
 

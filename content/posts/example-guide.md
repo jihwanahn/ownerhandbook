@@ -29,7 +29,7 @@ smallest decision you make.
 | Annual report or state renewal | $0 – $800 / year | Yes |
 | Business bank account | $0 – $360 / year | Yes |
 
-![LLC state filing fees, 2026, six examples](assets/images/llc-filing-fee-breakdown.webp "Most states charge between $50 and $200; Massachusetts is the outlier at $500.")
+![LLC state filing fees, 2026, six examples](assets/images/llc-filing-fee-breakdown-v2.webp "Most states charge between $50 and $200; Massachusetts is the outlier at $500.")
 
 The filing fee is the number every comparison article leads with, and it is the least
 interesting one — it is paid once. The other three repeat, which is why two LLCs with
