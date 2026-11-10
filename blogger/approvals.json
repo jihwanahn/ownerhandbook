@@ -40,5 +40,11 @@
     "approvedBy": "Jihwan standing authorization 2026-11-07 (autonomous publishing)",
     "action": "publish",
     "target": "8200600781070586256"
+  },
+  {
+    "at": "2026-11-11T08:04:51+0900",
+    "approvedBy": "Jihwan Ahn, standing authorization 2026-11-07 for autonomous weekday publishing (routine run 2026-11-11)",
+    "action": "publish",
+    "target": "7239573402740544984"
   }
 ]
