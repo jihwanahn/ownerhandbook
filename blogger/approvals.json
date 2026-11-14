@@ -46,5 +46,11 @@
     "approvedBy": "Jihwan Ahn, standing authorization 2026-11-07 for autonomous weekday publishing (routine run 2026-11-11)",
     "action": "publish",
     "target": "7239573402740544984"
+  },
+  {
+    "at": "2026-11-14T12:45:55+0900",
+    "approvedBy": "User standing instructions supplied 2026-11-13 authorize autonomous publication since 2026-11-07; user resumed this workflow on 2026-11-14.",
+    "action": "publish",
+    "target": "5117349801065680903"
   }
 ]
