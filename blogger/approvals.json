@@ -52,5 +52,17 @@
     "approvedBy": "User standing instructions supplied 2026-11-13 authorize autonomous publication since 2026-11-07; user resumed this workflow on 2026-11-14.",
     "action": "publish",
     "target": "5117349801065680903"
+  },
+  {
+    "at": "2026-11-17T13:26:26+0900",
+    "approvedBy": "Jihwan Ahn, 2026-11-17 chat instruction '둘다 발행해' (publish both), plus standing authorization 2026-11-07 for autonomous publishing",
+    "action": "publish",
+    "target": "3048462972042289745"
+  },
+  {
+    "at": "2026-11-17T13:26:29+0900",
+    "approvedBy": "Jihwan Ahn, 2026-11-17 chat instruction '둘다 발행해' (publish both), plus standing authorization 2026-11-07 for autonomous publishing",
+    "action": "publish",
+    "target": "4568600042025098500"
   }
 ]
